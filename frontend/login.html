@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NeuralPrep — Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--bg:#05060f;--bg2:#0b0d1e;--surface:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);--accent:#6c63ff;--accent2:#00d9c0;--accent3:#ff6b6b;--text:#e8e9f3;--muted:#6b6d8a;--glow:rgba(108,99,255,0.35);--input-bg:rgba(255,255,255,0.05);}
+    [data-theme="light"]{--bg:#f0f1fa;--bg2:#e4e6f7;--surface:rgba(0,0,0,0.04);--border:rgba(0,0,0,0.1);--text:#0d0e1f;--muted:#7b7d9a;--glow:rgba(108,99,255,0.2);--input-bg:rgba(0,0,0,0.04);}
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;overflow:hidden;}
+    .left-panel{flex:1;background:linear-gradient(145deg,#0a0b1a,#12103a);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem;position:relative;overflow:hidden;}
+    [data-theme="light"] .left-panel{background:linear-gradient(145deg,#e4e6f7,#d0d3f5);}
+    .left-panel::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(ellipse at 40% 40%,rgba(108,99,255,0.15),transparent 60%),radial-gradient(ellipse at 70% 80%,rgba(0,217,192,0.1),transparent 50%);animation:rotateGrad 12s linear infinite;}
+    @keyframes rotateGrad{to{transform:rotate(360deg)}}
+    .left-logo{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:3rem;position:relative;z-index:1;align-self:flex-start;}
+    .left-content{position:relative;z-index:1;}
+    .left-content h2{font-family:'Syne',sans-serif;font-size:clamp(1.8rem,3vw,2.5rem);font-weight:800;line-height:1.15;letter-spacing:-0.5px;margin-bottom:1rem;}
+    .left-content p{color:var(--muted);line-height:1.8;max-width:380px;margin-bottom:2.5rem;}
+    .feature-list{display:flex;flex-direction:column;gap:1rem;}
+    .feat-item{display:flex;align-items:center;gap:0.75rem;font-size:0.9rem;color:var(--muted);}
+    .feat-dot{width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));flex-shrink:0;}
+    .right-panel{width:480px;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 3.5rem;position:relative;border-left:1px solid var(--border);}
+    .theme-btn{position:absolute;top:1.5rem;right:1.5rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.9rem;border-radius:20px;cursor:pointer;font-size:0.8rem;font-family:'DM Sans',sans-serif;transition:all 0.2s;}
+    .theme-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+    .form-header{text-align:center;margin-bottom:2.5rem;width:100%;}
+    .form-header h1{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;letter-spacing:-0.5px;margin-bottom:0.4rem;}
+    .form-header p{color:var(--muted);font-size:0.88rem;}
+    .tab-toggle{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:2rem;width:100%;}
+    .tab-btn{flex:1;padding:0.6rem;border:none;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:500;cursor:pointer;border-radius:9px;transition:all 0.2s;}
+    .tab-btn.active{background:linear-gradient(135deg,var(--accent),#9b59b6);color:#fff;}
+    .form-group{margin-bottom:1.3rem;width:100%;}
+    .form-group label{display:block;font-size:0.82rem;color:var(--muted);margin-bottom:0.5rem;font-weight:500;text-transform:uppercase;letter-spacing:0.05em;}
+    .form-group input{width:100%;padding:0.85rem 1.1rem;background:var(--input-bg);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.95rem;transition:all 0.2s;outline:none;}
+    .form-group input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,99,255,0.12);}
+    .form-group input::placeholder{color:var(--muted);}
+    .btn-submit{width:100%;padding:0.95rem;background:linear-gradient(135deg,var(--accent),#9b59b6);color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.3s;box-shadow:0 4px 20px var(--glow);margin-bottom:1.5rem;}
+    .btn-submit:hover{transform:translateY(-2px);box-shadow:0 8px 30px var(--glow);}
+    .divider{display:flex;align-items:center;gap:1rem;color:var(--muted);font-size:0.82rem;margin-bottom:1.5rem;width:100%;}
+    .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+    .btn-guest{width:100%;padding:0.85rem;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.92rem;font-weight:500;cursor:pointer;transition:all 0.2s;text-decoration:none;display:block;text-align:center;}
+    .btn-guest:hover{border-color:var(--accent2);color:var(--accent2);}
+    .error-msg{background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:var(--accent3);padding:0.75rem 1rem;border-radius:10px;font-size:0.85rem;margin-bottom:1rem;display:none;width:100%;}
+    .success-msg{background:rgba(0,217,192,0.1);border:1px solid rgba(0,217,192,0.3);color:var(--accent2);padding:0.75rem 1rem;border-radius:10px;font-size:0.85rem;margin-bottom:1rem;display:none;width:100%;}
+    @media(max-width:768px){body{flex-direction:column;}.left-panel{display:none;}.right-panel{width:100%;padding:2rem 1.5rem;}}
+  </style>
+</head>
+<body>
+  <div class="left-panel">
+    <div class="left-logo">NeuralPrep</div>
+    <div class="left-content">
+      <h2>Your intelligent study companion is waiting.</h2>
+      <p>Log in to access your personalized exam prep dashboard — or continue as a guest.</p>
+      <div class="feature-list">
+        <div class="feat-item"><div class="feat-dot"></div>ML-powered score predictions</div>
+        <div class="feat-item"><div class="feat-dot"></div>6 branches, 5 languages supported</div>
+        <div class="feat-item"><div class="feat-dot"></div>AI-suggested study topics</div>
+        <div class="feat-item"><div class="feat-dot"></div>Badges & achievements system</div>
+        <div class="feat-item"><div class="feat-dot"></div>Study reminders & exam countdown</div>
+      </div>
+    </div>
+  </div>
+  <div class="right-panel">
+    <button class="theme-btn" onclick="toggleTheme()">🌓 Theme</button>
+    <div class="form-header"><h1>Welcome back 👋</h1><p>Sign in to your account or create a new one</p></div>
+    <div class="tab-toggle">
+      <button class="tab-btn active" id="loginTab" onclick="switchTab('login')">Sign In</button>
+      <button class="tab-btn" id="signupTab" onclick="switchTab('signup')">Sign Up</button>
+    </div>
+    <div id="errorMsg" class="error-msg"></div>
+    <div id="successMsg" class="success-msg"></div>
+    <div id="loginForm" style="width:100%">
+      <div class="form-group"><label>Email</label><input type="email" id="loginEmail" placeholder="you@example.com"/></div>
+      <div class="form-group"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••"/></div>
+      <button class="btn-submit" onclick="handleLogin()">Sign In →</button>
+    </div>
+    <div id="signupForm" style="width:100%;display:none;">
+      <div class="form-group"><label>Full Name</label><input type="text" id="signupName" placeholder="Your name"/></div>
+      <div class="form-group"><label>Email</label><input type="email" id="signupEmail" placeholder="you@example.com"/></div>
+      <div class="form-group"><label>Password</label><input type="password" id="signupPassword" placeholder="Min 6 characters"/></div>
+      <button class="btn-submit" onclick="handleSignup()">Create Account →</button>
+    </div>
+    <div class="divider">or</div>
+    <a href="planner.html" class="btn-guest">🚀 Continue as Guest</a>
+  </div>
+  <script>
+    function toggleTheme(){const h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'light':'dark';localStorage.setItem('theme',h.dataset.theme);}
+    const saved=localStorage.getItem('theme');if(saved)document.documentElement.dataset.theme=saved;
+    function switchTab(tab){document.getElementById('loginForm').style.display=tab==='login'?'block':'none';document.getElementById('signupForm').style.display=tab==='signup'?'block':'none';document.getElementById('loginTab').classList.toggle('active',tab==='login');document.getElementById('signupTab').classList.toggle('active',tab==='signup');hideMessages();}
+    function showError(msg){const el=document.getElementById('errorMsg');el.textContent=msg;el.style.display='block';document.getElementById('successMsg').style.display='none';}
+    function showSuccess(msg){const el=document.getElementById('successMsg');el.textContent=msg;el.style.display='block';document.getElementById('errorMsg').style.display='none';}
+    function hideMessages(){document.getElementById('errorMsg').style.display='none';document.getElementById('successMsg').style.display='none';}
+    async function handleLogin(){
+      const email=document.getElementById('loginEmail').value.trim(),password=document.getElementById('loginPassword').value;
+      if(!email||!password)return showError('Please fill in all fields.');
+      try{const res=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});const data=await res.json();if(res.ok){sessionStorage.setItem('user',JSON.stringify(data.user));showSuccess('Login successful! Redirecting...');setTimeout(()=>window.location.href='planner.html',1200);}else{showError(data.message||'Login failed.');}}catch{showError('Server error.');setTimeout(()=>window.location.href='planner.html',1500);}
+    }
+    async function handleSignup(){
+      const name=document.getElementById('signupName').value.trim(),email=document.getElementById('signupEmail').value.trim(),password=document.getElementById('signupPassword').value;
+      if(!name||!email||!password)return showError('Please fill in all fields.');
+      if(password.length<6)return showError('Password must be at least 6 characters.');
+      try{const res=await fetch('/api/auth/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,password})});const data=await res.json();if(res.ok){showSuccess('Account created! You can now sign in.');setTimeout(()=>switchTab('login'),1500);}else{showError(data.message||'Signup failed.');}}catch{showError('Server error.');setTimeout(()=>window.location.href='planner.html',1500);}
+    }
+  </script>
+</body>
+</html>

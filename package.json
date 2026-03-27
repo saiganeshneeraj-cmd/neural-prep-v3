@@ -1,0 +1,9 @@
+{
+  "name": "neural-prep",
+  "version": "2.0.0",
+  "description": "Smart Exam Preparation Scheduler — Full Stack ML Web App",
+  "main": "backend/server.js",
+  "scripts": { "start": "node backend/server.js", "dev": "nodemon backend/server.js" },
+  "dependencies": { "cors": "^2.8.5", "dotenv": "^16.3.1", "express": "^4.18.2" },
+  "devDependencies": { "nodemon": "^3.0.2" }
+}

@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NeuralPrep — Planner</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:#05060f; --bg2:#0b0d1e;
+      --surface:rgba(255,255,255,0.04); --surface2:rgba(255,255,255,0.07);
+      --border:rgba(255,255,255,0.08); --border2:rgba(255,255,255,0.12);
+      --accent:#6c63ff; --accent2:#00d9c0; --accent3:#ff6b6b;
+      --text:#e8e9f3; --muted:#6b6d8a;
+      --glow:rgba(108,99,255,0.35);
+      --input-bg:rgba(255,255,255,0.05);
+      --card-bg:rgba(255,255,255,0.03);
+    }
+    [data-theme="light"] {
+      --bg:#f0f1fa; --bg2:#e4e6f7;
+      --surface:rgba(0,0,0,0.04); --surface2:rgba(0,0,0,0.07);
+      --border:rgba(0,0,0,0.08); --border2:rgba(0,0,0,0.14);
+      --text:#0d0e1f; --muted:#7b7d9a;
+      --glow:rgba(108,99,255,0.2); --input-bg:rgba(0,0,0,0.04);
+      --card-bg:rgba(0,0,0,0.02);
+    }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+    nav {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:1.1rem 3rem;
+      background:rgba(5,6,15,0.85); backdrop-filter:blur(20px);
+      border-bottom:1px solid var(--border);
+      position:sticky; top:0; z-index:100;
+    }
+    [data-theme="light"] nav { background:rgba(240,241,250,0.9); }
+    .nav-logo {
+      font-family:'Syne',sans-serif; font-weight:800; font-size:1.3rem;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      text-decoration:none;
+    }
+    .nav-right { display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
+    .nav-right a { color:var(--muted); text-decoration:none; font-size:0.88rem; transition:color 0.2s; }
+    .nav-right a:hover { color:var(--text); }
+
+    /* Language selector */
+    .lang-select {
+      background:var(--surface); border:1px solid var(--border);
+      color:var(--text); padding:0.4rem 0.7rem; border-radius:20px;
+      font-size:0.8rem; font-family:'DM Sans',sans-serif; cursor:pointer;
+      outline:none; transition:all 0.2s;
+    }
+    .lang-select:focus { border-color:var(--accent); }
+    .lang-select option { background:var(--bg2); }
+
+    .theme-btn {
+      background:var(--surface); border:1px solid var(--border);
+      color:var(--text); padding:0.4rem 0.9rem; border-radius:20px;
+      cursor:pointer; font-size:0.8rem; font-family:'DM Sans',sans-serif; transition:all 0.2s;
+    }
+    .theme-btn:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+    /* Motivational quote banner */
+    .quote-banner {
+      background:linear-gradient(135deg,rgba(108,99,255,0.1),rgba(0,217,192,0.1));
+      border:1px solid rgba(108,99,255,0.2);
+      border-radius:16px; padding:1rem 1.5rem;
+      margin-bottom:2rem;
+      display:flex; align-items:center; gap:1rem;
+      position:relative; overflow:hidden;
+    }
+    .quote-banner::before {
+      content:'';
+      position:absolute; top:0; left:0; right:0; height:2px;
+      background:linear-gradient(90deg,var(--accent),var(--accent2));
+    }
+    .quote-icon { font-size:1.5rem; flex-shrink:0; }
+    .quote-text { font-size:0.9rem; color:var(--muted); font-style:italic; line-height:1.6; }
+    .quote-author { font-size:0.78rem; color:var(--accent2); margin-top:0.2rem; font-weight:600; }
+
+    /* Reminder banner */
+    .reminder-banner {
+      background:rgba(255,160,0,0.08);
+      border:1px solid rgba(255,160,0,0.2);
+      border-radius:16px; padding:1rem 1.5rem;
+      margin-bottom:2rem;
+      display:flex; align-items:center; justify-content:space-between;
+      gap:1rem; flex-wrap:wrap;
+    }
+    .reminder-left { display:flex; align-items:center; gap:0.75rem; }
+    .reminder-text { font-size:0.88rem; }
+    .reminder-text strong { color:#ffa000; }
+    .btn-set-reminder {
+      background:rgba(255,160,0,0.15); border:1px solid rgba(255,160,0,0.3);
+      color:#ffa000; padding:0.4rem 1rem; border-radius:10px;
+      font-size:0.8rem; font-family:'DM Sans',sans-serif; cursor:pointer;
+      transition:all 0.2s; white-space:nowrap;
+    }
+    .btn-set-reminder:hover { background:rgba(255,160,0,0.25); }
+
+    .page-wrap { max-width:900px; margin:0 auto; padding:3rem 2rem 5rem; }
+    .page-header { margin-bottom:2rem; }
+    .page-header h1 { font-family:'Syne',sans-serif; font-size:clamp(1.8rem,4vw,2.6rem); font-weight:800; letter-spacing:-1px; margin-bottom:0.5rem; }
+    .page-header p { color:var(--muted); font-size:0.95rem; }
+
+    .card { background:var(--card-bg); border:1px solid var(--border); border-radius:20px; padding:2rem; margin-bottom:1.5rem; }
+    .card-title { font-family:'Syne',sans-serif; font-weight:700; font-size:1rem; margin-bottom:1.5rem; display:flex; align-items:center; gap:0.6rem; }
+    .card-title .badge { background:rgba(108,99,255,0.12); color:var(--accent); padding:0.2rem 0.6rem; border-radius:6px; font-size:0.72rem; font-weight:600; }
+
+    .radio-group { display:flex; gap:1rem; flex-wrap:wrap; }
+    .radio-option { flex:1; min-width:140px; border:1.5px solid var(--border); border-radius:14px; padding:1.1rem 1.4rem; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:0.75rem; }
+    .radio-option:hover { border-color:var(--accent); background:rgba(108,99,255,0.05); }
+    .radio-option.selected { border-color:var(--accent); background:rgba(108,99,255,0.08); box-shadow:0 0 20px rgba(108,99,255,0.15); }
+    .radio-option input { display:none; }
+    .radio-dot { width:16px; height:16px; border-radius:50%; border:2px solid var(--border); flex-shrink:0; transition:all 0.2s; }
+    .radio-option.selected .radio-dot { border-color:var(--accent); background:var(--accent); box-shadow:0 0 8px rgba(108,99,255,0.5); }
+    .radio-text { font-size:0.9rem; font-weight:500; }
+    .radio-sub { font-size:0.75rem; color:var(--muted); margin-top:0.1rem; }
+
+    .branch-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+    @media(max-width:600px){ .branch-grid { grid-template-columns:repeat(2,1fr); } }
+    .branch-card { border:1.5px solid var(--border); border-radius:14px; padding:1rem; text-align:center; cursor:pointer; transition:all 0.25s; }
+    .branch-card:hover { border-color:var(--accent2); transform:translateY(-3px); }
+    .branch-card.selected { border-color:var(--accent2); background:rgba(0,217,192,0.07); box-shadow:0 0 20px rgba(0,217,192,0.15); }
+    .branch-emoji { font-size:1.8rem; margin-bottom:0.4rem; }
+    .branch-name { font-size:0.82rem; font-weight:600; }
+
+    .time-row { display:flex; gap:1rem; }
+    .time-row > * { flex:1; }
+    select { width:100%; padding:0.8rem 1rem; background:var(--input-bg); border:1px solid var(--border); border-radius:12px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:0.9rem; cursor:pointer; outline:none; transition:border-color 0.2s; appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6d8a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 1rem center; }
+    select:focus { border-color:var(--accent); }
+    select option { background:var(--bg2); }
+    label.field-label { display:block; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.07em; color:var(--muted); margin-bottom:0.5rem; font-weight:500; }
+
+    /* Exam date */
+    .exam-date-row { display:flex; gap:1rem; margin-top:1rem; }
+    .exam-date-row > * { flex:1; }
+    .exam-date-row input[type="date"] { width:100%; padding:0.8rem 1rem; background:var(--input-bg); border:1px solid var(--border); border-radius:12px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:0.9rem; outline:none; transition:border-color 0.2s; }
+    .exam-date-row input[type="date"]:focus { border-color:var(--accent); }
+
+    /* Countdown display */
+    .countdown-display {
+      background:linear-gradient(135deg,rgba(255,107,107,0.1),rgba(255,160,0,0.1));
+      border:1px solid rgba(255,107,107,0.2);
+      border-radius:12px; padding:0.8rem 1.2rem;
+      display:none; align-items:center; gap:0.75rem;
+      margin-top:1rem; font-size:0.88rem;
+    }
+    .countdown-display.show { display:flex; }
+    .countdown-num { font-family:'Syne',sans-serif; font-size:1.4rem; font-weight:800; color:#ff6b6b; }
+
+    .subjects-list { display:flex; flex-direction:column; gap:1rem; }
+    .subject-card { border:1px solid var(--border); border-radius:16px; overflow:hidden; transition:all 0.2s; }
+    .subject-card:hover { border-color:var(--border2); }
+    .subject-header { display:flex; align-items:center; justify-content:space-between; padding:1rem 1.3rem; cursor:pointer; background:var(--surface); transition:background 0.2s; }
+    .subject-header:hover { background:var(--surface2); }
+    .subject-header-left { display:flex; align-items:center; gap:0.75rem; }
+    .subject-color { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+    .subject-name-input { background:transparent; border:none; outline:none; font-family:'Syne',sans-serif; font-weight:700; font-size:0.95rem; color:var(--text); cursor:text; width:200px; }
+    .subject-name-input:focus { border-bottom:1px solid var(--accent); }
+    .subject-actions { display:flex; align-items:center; gap:0.5rem; }
+    .btn-icon { background:none; border:none; cursor:pointer; color:var(--muted); font-size:1rem; padding:0.3rem; border-radius:6px; transition:all 0.15s; }
+    .btn-icon:hover { color:var(--accent3); background:rgba(255,107,107,0.1); }
+    .btn-icon.expand-btn:hover { color:var(--accent); background:rgba(108,99,255,0.1); }
+    .chevron { transition:transform 0.3s; display:inline-block; }
+    .subject-card.open .chevron { transform:rotate(180deg); }
+    .subject-body { display:none; padding:1.2rem 1.3rem; border-top:1px solid var(--border); background:var(--card-bg); }
+    .subject-card.open .subject-body { display:block; }
+
+    .marks-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1.2rem; }
+    @media(max-width:600px){ .marks-grid { grid-template-columns:1fr; } }
+    .mark-field label { display:block; font-size:0.75rem; color:var(--muted); margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.06em; }
+    .mark-input-wrap { position:relative; }
+    .mark-input-wrap input[type="range"] { width:100%; appearance:none; height:4px; background:linear-gradient(to right, var(--accent) 0%, var(--border) 0%); border-radius:2px; outline:none; cursor:pointer; }
+    .mark-input-wrap input[type="range"]::-webkit-slider-thumb { appearance:none; width:16px; height:16px; background:var(--accent); border-radius:50%; box-shadow:0 0 8px rgba(108,99,255,0.5); }
+    .mark-val { position:absolute; right:0; top:-1.5rem; font-size:0.82rem; font-weight:700; color:var(--accent); }
+
+    /* Topics */
+    .topics-section { margin-top:1rem; }
+    .topics-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:0.75rem; }
+    .topics-label { font-size:0.78rem; text-transform:uppercase; letter-spacing:0.07em; color:var(--muted); font-weight:500; }
+    .btn-ai-suggest { background:linear-gradient(135deg,rgba(0,217,192,0.1),rgba(108,99,255,0.1)); border:1px solid rgba(0,217,192,0.3); color:var(--accent2); padding:0.3rem 0.8rem; border-radius:8px; font-size:0.75rem; font-family:'DM Sans',sans-serif; cursor:pointer; transition:all 0.2s; font-weight:500; }
+    .btn-ai-suggest:hover { background:rgba(0,217,192,0.15); }
+    .btn-ai-suggest.loading { opacity:0.6; pointer-events:none; }
+    .topics-tags { display:flex; flex-wrap:wrap; gap:0.5rem; min-height:36px; }
+    .topic-tag { display:flex; align-items:center; gap:0.4rem; background:rgba(108,99,255,0.1); border:1px solid rgba(108,99,255,0.2); color:var(--text); padding:0.3rem 0.7rem; border-radius:20px; font-size:0.8rem; animation:tagIn 0.2s ease; }
+    @keyframes tagIn { from{opacity:0;transform:scale(0.8)} to{opacity:1;transform:scale(1)} }
+    .topic-tag .remove-tag { cursor:pointer; color:var(--muted); font-size:0.85rem; transition:color 0.15s; }
+    .topic-tag .remove-tag:hover { color:var(--accent3); }
+    .topic-input-row { display:flex; gap:0.5rem; margin-top:0.6rem; }
+    .topic-input-row input { flex:1; padding:0.5rem 0.9rem; background:var(--input-bg); border:1px solid var(--border); border-radius:10px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:0.85rem; outline:none; }
+    .topic-input-row input:focus { border-color:var(--accent); }
+    .btn-add-topic { padding:0.5rem 0.9rem; background:var(--accent); border:none; border-radius:10px; color:#fff; cursor:pointer; font-size:0.85rem; transition:all 0.2s; }
+    .btn-add-topic:hover { background:#5a52e0; }
+
+    /* Quick Notes */
+    .notes-section { margin-top:1rem; border-top:1px solid var(--border); padding-top:1rem; }
+    .notes-label { font-size:0.78rem; text-transform:uppercase; letter-spacing:0.07em; color:var(--muted); font-weight:500; margin-bottom:0.5rem; display:flex; align-items:center; gap:0.4rem; }
+    .notes-textarea { width:100%; padding:0.75rem 1rem; background:var(--input-bg); border:1px solid var(--border); border-radius:10px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:0.85rem; resize:vertical; min-height:80px; outline:none; transition:border-color 0.2s; line-height:1.6; }
+    .notes-textarea:focus { border-color:var(--accent2); }
+    .notes-textarea::placeholder { color:var(--muted); }
+    .notes-save-hint { font-size:0.72rem; color:var(--muted); margin-top:0.3rem; }
+
+    .btn-add-subject { width:100%; padding:0.85rem; background:transparent; border:1.5px dashed var(--border); border-radius:16px; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:0.9rem; cursor:pointer; transition:all 0.2s; margin-top:0.5rem; }
+    .btn-add-subject:hover { border-color:var(--accent2); color:var(--accent2); background:rgba(0,217,192,0.04); }
+
+    .generate-btn { width:100%; padding:1.1rem; background:linear-gradient(135deg, var(--accent), #9b59b6); border:none; border-radius:16px; color:#fff; font-family:'Syne',sans-serif; font-size:1.1rem; font-weight:700; cursor:pointer; transition:all 0.3s; box-shadow:0 4px 30px var(--glow); margin-top:2rem; letter-spacing:0.5px; position:relative; overflow:hidden; }
+    .generate-btn:hover { transform:translateY(-3px); box-shadow:0 8px 40px var(--glow); }
+    .generate-btn:disabled { opacity:0.6; pointer-events:none; }
+
+    /* Reminder Modal */
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(5px); z-index:9999; display:none; align-items:center; justify-content:center; }
+    .modal-overlay.show { display:flex; }
+    .modal { background:var(--bg2); border:1px solid var(--border); border-radius:20px; padding:2rem; width:90%; max-width:420px; }
+    .modal h3 { font-family:'Syne',sans-serif; font-weight:700; margin-bottom:1.5rem; }
+    .modal-field { margin-bottom:1rem; }
+    .modal-field label { display:block; font-size:0.8rem; color:var(--muted); margin-bottom:0.4rem; }
+    .modal-field input { width:100%; padding:0.7rem 1rem; background:var(--input-bg); border:1px solid var(--border); border-radius:10px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:0.9rem; outline:none; }
+    .modal-field input:focus { border-color:var(--accent); }
+    .modal-actions { display:flex; gap:0.75rem; margin-top:1.5rem; }
+    .btn-modal-confirm { flex:1; padding:0.75rem; background:linear-gradient(135deg,var(--accent),#9b59b6); border:none; border-radius:10px; color:#fff; font-family:'DM Sans',sans-serif; font-size:0.9rem; font-weight:600; cursor:pointer; transition:all 0.2s; }
+    .btn-modal-cancel { flex:1; padding:0.75rem; background:var(--surface); border:1px solid var(--border); border-radius:10px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:0.9rem; cursor:pointer; transition:all 0.2s; }
+
+    .toast { position:fixed; bottom:2rem; right:2rem; background:rgba(108,99,255,0.15); border:1px solid rgba(108,99,255,0.3); color:var(--accent); padding:0.8rem 1.3rem; border-radius:12px; font-size:0.85rem; z-index:9999; transform:translateY(100px); opacity:0; transition:all 0.3s; backdrop-filter:blur(10px); }
+    .toast.show { transform:translateY(0); opacity:1; }
+
+    /* Progress steps */
+    .progress-steps { display:flex; align-items:center; margin-bottom:3rem; }
+    .step-item { display:flex; flex-direction:column; align-items:center; flex:1; position:relative; }
+    .step-item:not(:last-child)::after { content:''; position:absolute; top:18px; left:60%; width:80%; height:1px; background:var(--border); }
+    .step-item.active:not(:last-child)::after { background:var(--accent); }
+    .step-circle { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:700; border:2px solid var(--border); color:var(--muted); background:var(--bg); margin-bottom:0.4rem; transition:all 0.3s; }
+    .step-item.active .step-circle { border-color:var(--accent); color:var(--accent); box-shadow:0 0 15px rgba(108,99,255,0.3); }
+    .step-label { font-size:0.72rem; color:var(--muted); text-align:center; }
+    .step-item.active .step-label { color:var(--accent); }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="index.html" class="nav-logo">NeuralPrep</a>
+    <div class="nav-right">
+      <select class="lang-select" id="langSelect" onchange="changeLanguage(this.value)">
+        <option value="en">🌍 English</option>
+        <option value="te">🇮🇳 Telugu</option>
+        <option value="hi">🇮🇳 Hindi</option>
+        <option value="ta">🇮🇳 Tamil</option>
+        <option value="kn">🇮🇳 Kannada</option>
+        <option value="ml">🇮🇳 Malayalam</option>
+      </select>
+      <a href="index.html" data-i18n="home">Home</a>
+      <a href="dashboard.html" data-i18n="dashboard">📈 Dashboard</a>
+      <a href="login.html" data-i18n="login">Login</a>
+      <button class="theme-btn" onclick="toggleTheme()">🌓</button>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+    <!-- Motivational Quote -->
+    <div class="quote-banner" id="quoteBanner">
+      <div class="quote-icon">💬</div>
+      <div>
+        <div class="quote-text" id="quoteText">Loading your daily motivation...</div>
+        <div class="quote-author" id="quoteAuthor"></div>
+      </div>
+    </div>
+
+    <!-- Reminder Banner -->
+    <div class="reminder-banner">
+      <div class="reminder-left">
+        <span>🔔</span>
+        <div class="reminder-text" id="reminderText"><strong data-i18n="setReminder">Set Study Reminders</strong> — Never miss a study session!</div>
+      </div>
+      <button class="btn-set-reminder" onclick="openReminderModal()" data-i18n="setReminderBtn">⏰ Set Reminder</button>
+    </div>
+
+    <div class="page-header">
+      <h1 data-i18n="buildPlan">⚡ Build Your Study Plan</h1>
+      <p data-i18n="buildPlanSub">Fill in your details — our ML model will predict your scores and build an optimized schedule.</p>
+    </div>
+
+    <!-- Progress Steps -->
+    <div class="progress-steps">
+      <div class="step-item active"><div class="step-circle">1</div><div class="step-label" data-i18n="setup">Setup</div></div>
+      <div class="step-item"><div class="step-circle">2</div><div class="step-label" data-i18n="subjects">Subjects</div></div>
+      <div class="step-item"><div class="step-circle">3</div><div class="step-label" data-i18n="marks">Marks</div></div>
+      <div class="step-item"><div class="step-circle">4</div><div class="step-label" data-i18n="generate">Generate</div></div>
+    </div>
+
+    <!-- EXAM MODE -->
+    <div class="card">
+      <div class="card-title">🎯 <span data-i18n="examMode">Exam Mode</span> <span class="badge">Step 1</span></div>
+      <div class="radio-group">
+        <label class="radio-option selected" onclick="selectRadio(this,'exam','semester')">
+          <input type="radio" name="exam" value="semester" checked/>
+          <div class="radio-dot"></div>
+          <div><div class="radio-text" data-i18n="semesterExam">Semester Exam</div><div class="radio-sub">Final / 100 marks</div></div>
+        </label>
+        <label class="radio-option" onclick="selectRadio(this,'exam','mid')">
+          <input type="radio" name="exam" value="mid"/>
+          <div class="radio-dot"></div>
+          <div><div class="radio-text" data-i18n="midExam">Mid Exam</div><div class="radio-sub">Internal / 30 marks</div></div>
+        </label>
+      </div>
+
+      <!-- Exam Date & Countdown -->
+      <div class="exam-date-row">
+        <div>
+          <label class="field-label" data-i18n="examDate">Exam Date (for countdown)</label>
+          <input type="date" id="examDate" onchange="updateCountdown()" min=""/>
+        </div>
+      </div>
+      <div class="countdown-display" id="countdownDisplay">
+        <span>📅</span>
+        <span>Your exam is in <span class="countdown-num" id="countdownNum">0</span> days!</span>
+      </div>
+    </div>
+
+    <!-- DIFFICULTY -->
+    <div class="card">
+      <div class="card-title">⚙️ <span data-i18n="difficulty">Difficulty Mode</span> <span class="badge">Step 1</span></div>
+      <div class="radio-group">
+        <label class="radio-option" onclick="selectRadio(this,'diff','easy')">
+          <input type="radio" name="diff" value="easy"/>
+          <div class="radio-dot"></div>
+          <div><div class="radio-text" data-i18n="easy">Easy</div><div class="radio-sub">Relaxed targets</div></div>
+        </label>
+        <label class="radio-option selected" onclick="selectRadio(this,'diff','normal')">
+          <input type="radio" name="diff" value="normal" checked/>
+          <div class="radio-dot"></div>
+          <div><div class="radio-text" data-i18n="normal">Normal</div><div class="radio-sub">Balanced plan</div></div>
+        </label>
+        <label class="radio-option" onclick="selectRadio(this,'diff','brutal')">
+          <input type="radio" name="diff" value="brutal"/>
+          <div class="radio-dot"></div>
+          <div><div class="radio-text" data-i18n="brutal">Brutal</div><div class="radio-sub">Maximum push</div></div>
+        </label>
+      </div>
+    </div>
+
+    <!-- TIME -->
+    <div class="card">
+      <div class="card-title">⏰ <span data-i18n="studyTime">Study Time Window</span> <span class="badge">Step 1</span></div>
+      <div class="time-row">
+        <div><label class="field-label" data-i18n="startTime">Start Time</label><select id="startTime"></select></div>
+        <div><label class="field-label" data-i18n="endTime">End Time</label><select id="endTime"></select></div>
+      </div>
+    </div>
+
+    <!-- BRANCH -->
+    <div class="card">
+      <div class="card-title">🏫 <span data-i18n="yourBranch">Your Branch</span> <span class="badge">Step 2</span></div>
+      <div class="branch-grid" id="branchGrid">
+        <div class="branch-card" data-branch="CSE" onclick="selectBranch(this)"><div class="branch-emoji">💻</div><div class="branch-name">CSE / IT</div></div>
+        <div class="branch-card" data-branch="ECE" onclick="selectBranch(this)"><div class="branch-emoji">📡</div><div class="branch-name">ECE / EEE</div></div>
+        <div class="branch-card" data-branch="MECH" onclick="selectBranch(this)"><div class="branch-emoji">⚙️</div><div class="branch-name">Mechanical</div></div>
+        <div class="branch-card" data-branch="CIVIL" onclick="selectBranch(this)"><div class="branch-emoji">🏗️</div><div class="branch-name">Civil</div></div>
+        <div class="branch-card" data-branch="MBA" onclick="selectBranch(this)"><div class="branch-emoji">📊</div><div class="branch-name">MBA / MCA</div></div>
+        <div class="branch-card" data-branch="CUSTOM" onclick="selectBranch(this)"><div class="branch-emoji">✏️</div><div class="branch-name">Custom</div></div>
+      </div>
+    </div>
+
+    <!-- SUBJECTS -->
+    <div class="card" id="subjectsCard">
+      <div class="card-title">📚 <span data-i18n="yourSubjects">Your Subjects</span> <span class="badge">Step 3</span></div>
+      <div class="subjects-list" id="subjectsList"></div>
+      <button class="btn-add-subject" onclick="addSubject()" data-i18n="addSubject">+ Add Subject</button>
+    </div>
+
+    <button class="generate-btn" id="generateBtn" onclick="generatePlan()" data-i18n="generatePlan">
+      ⚡ Generate My Study Plan
+    </button>
+  </div>
+
+  <!-- Reminder Modal -->
+  <div class="modal-overlay" id="reminderModal">
+    <div class="modal">
+      <h3>🔔 Set Study Reminder</h3>
+      <div class="modal-field">
+        <label>Reminder Message</label>
+        <input type="text" id="reminderMsg" placeholder="e.g. Time to study Maths!" value="Time to study! 📚"/>
+      </div>
+      <div class="modal-field">
+        <label>Remind me at</label>
+        <input type="time" id="reminderTime" value="18:00"/>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-modal-confirm" onclick="setReminder()">✅ Set Reminder</button>
+        <button class="btn-modal-cancel" onclick="closeReminderModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ==================== TRANSLATIONS ====================
+    const translations = {
+      en: { home:'Home', dashboard:'📈 Dashboard', login:'Login', setReminder:'Set Study Reminders', setReminderBtn:'⏰ Set Reminder', buildPlan:'⚡ Build Your Study Plan', buildPlanSub:'Fill in your details — our ML model will predict your scores and build an optimized schedule.', setup:'Setup', subjects:'Subjects', marks:'Marks', generate:'Generate', examMode:'Exam Mode', semesterExam:'Semester Exam', midExam:'Mid Exam', examDate:'Exam Date (for countdown)', difficulty:'Difficulty Mode', easy:'Easy', normal:'Normal', brutal:'Brutal', studyTime:'Study Time Window', startTime:'Start Time', endTime:'End Time', yourBranch:'Your Branch', yourSubjects:'Your Subjects', addSubject:'+ Add Subject', generatePlan:'⚡ Generate My Study Plan' },
+      te: { home:'హోమ్', dashboard:'📈 డాష్‌బోర్డ్', login:'లాగిన్', setReminder:'స్టడీ రిమైండర్లు సెట్ చేయండి', setReminderBtn:'⏰ రిమైండర్ సెట్ చేయి', buildPlan:'⚡ మీ స్టడీ ప్లాన్ తయారు చేయండి', buildPlanSub:'మీ వివరాలు నమోదు చేయండి — మా ML మోడల్ మీ స్కోర్లను అంచనా వేస్తుంది.', setup:'సెటప్', subjects:'సబ్జెక్టులు', marks:'మార్కులు', generate:'జనరేట్', examMode:'పరీక్ష మోడ్', semesterExam:'సెమిస్టర్ పరీక్ష', midExam:'మిడ్ పరీక్ష', examDate:'పరీక్ష తేదీ', difficulty:'కష్టపడే స్థాయి', easy:'సులభం', normal:'సాధారణం', brutal:'కఠినం', studyTime:'స్టడీ టైమ్', startTime:'ప్రారంభ సమయం', endTime:'ముగింపు సమయం', yourBranch:'మీ బ్రాంచ్', yourSubjects:'మీ సబ్జెక్టులు', addSubject:'+ సబ్జెక్ట్ జోడించు', generatePlan:'⚡ స్టడీ ప్లాన్ తయారు చేయి' },
+      hi: { home:'होम', dashboard:'📈 डैशबोर्ड', login:'लॉगिन', setReminder:'स्टडी रिमाइंडर सेट करें', setReminderBtn:'⏰ रिमाइंडर सेट करें', buildPlan:'⚡ अपना स्टडी प्लान बनाएं', buildPlanSub:'अपनी जानकारी भरें — हमारा ML मॉडल आपके स्कोर की भविष्यवाणी करेगा।', setup:'सेटअप', subjects:'विषय', marks:'अंक', generate:'बनाएं', examMode:'परीक्षा मोड', semesterExam:'सेमेस्टर परीक्षा', midExam:'मिड परीक्षा', examDate:'परीक्षा तिथि', difficulty:'कठिनाई स्तर', easy:'आसान', normal:'सामान्य', brutal:'कठिन', studyTime:'पढ़ाई का समय', startTime:'शुरुआती समय', endTime:'अंतिम समय', yourBranch:'आपकी शाखा', yourSubjects:'आपके विषय', addSubject:'+ विषय जोड़ें', generatePlan:'⚡ स्टडी प्लान बनाएं' },
+      ta: { home:'முகப்பு', dashboard:'📈 டாஷ்போர்டு', login:'உள்நுழை', setReminder:'படிப்பு நினைவூட்டல் அமை', setReminderBtn:'⏰ நினைவூட்டல் அமை', buildPlan:'⚡ உங்கள் படிப்பு திட்டம் உருவாக்கு', buildPlanSub:'உங்கள் விவரங்களை நிரப்பவும் — எங்கள் ML மாதிரி உங்கள் மதிப்பெண்களை கணிக்கும்.', setup:'அமைவு', subjects:'பாடங்கள்', marks:'மதிப்பெண்கள்', generate:'உருவாக்கு', examMode:'தேர்வு முறை', semesterExam:'செமஸ்டர் தேர்வு', midExam:'மத்திய தேர்வு', examDate:'தேர்வு தேதி', difficulty:'கஷ்ட நிலை', easy:'எளிது', normal:'சாதாரண', brutal:'கடினம்', studyTime:'படிப்பு நேரம்', startTime:'தொடக்க நேரம்', endTime:'முடிவு நேரம்', yourBranch:'உங்கள் கிளை', yourSubjects:'உங்கள் பாடங்கள்', addSubject:'+ பாடம் சேர்', generatePlan:'⚡ படிப்பு திட்டம் உருவாக்கு' },
+      kn: { home:'ಮನೆ', dashboard:'📈 ಡ್ಯಾಶ್‌ಬೋರ್ಡ್', login:'ಲಾಗಿನ್', setReminder:'ಅಧ್ಯಯನ ರಿಮೈಂಡರ್ ಹೊಂದಿಸಿ', setReminderBtn:'⏰ ರಿಮೈಂಡರ್ ಹೊಂದಿಸಿ', buildPlan:'⚡ ನಿಮ್ಮ ಅಧ್ಯಯನ ಯೋಜನೆ ರಚಿಸಿ', buildPlanSub:'ನಿಮ್ಮ ವಿವರಗಳನ್ನು ತುಂಬಿ — ನಮ್ಮ ML ಮಾದರಿ ನಿಮ್ಮ ಅಂಕಗಳನ್ನು ಅಂದಾಜಿಸುತ್ತದೆ.', setup:'ಸೆಟಪ್', subjects:'ವಿಷಯಗಳು', marks:'ಅಂಕಗಳು', generate:'ರಚಿಸಿ', examMode:'ಪರೀಕ್ಷೆ ಮೋಡ್', semesterExam:'ಸೆಮಿಸ್ಟರ್ ಪರೀಕ್ಷೆ', midExam:'ಮಿಡ್ ಪರೀಕ್ಷೆ', examDate:'ಪರೀಕ್ಷೆ ದಿನಾಂಕ', difficulty:'ಕಷ್ಟ ಮಟ್ಟ', easy:'ಸುಲಭ', normal:'ಸಾಮಾನ್ಯ', brutal:'ಕಠಿಣ', studyTime:'ಅಧ್ಯಯನ ಸಮಯ', startTime:'ಪ್ರಾರಂಭ ಸಮಯ', endTime:'ಅಂತ್ಯ ಸಮಯ', yourBranch:'ನಿಮ್ಮ ಶಾಖೆ', yourSubjects:'ನಿಮ್ಮ ವಿಷಯಗಳು', addSubject:'+ ವಿಷಯ ಸೇರಿಸಿ', generatePlan:'⚡ ಅಧ್ಯಯನ ಯೋಜನೆ ರಚಿಸಿ' },
+      ml: { home:'ഹോം', dashboard:'📈 ഡാഷ്‌ബോർഡ്', login:'ലോഗിൻ', setReminder:'പഠന ഓർമ്മപ്പെടുത്തൽ സജ്ജമാക്കുക', setReminderBtn:'⏰ ഓർമ്മപ്പെടുത്തൽ സജ്ജമാക്കുക', buildPlan:'⚡ നിങ്ങളുടെ പഠന പദ്ധതി ഉണ്ടാക്കുക', buildPlanSub:'വിവരങ്ങൾ നൽകൂ — ഞങ്ങളുടെ ML മോഡൽ നിങ്ങളുടെ സ്കോറുകൾ പ്രവചിക്കും.', setup:'സജ്ജീകരണം', subjects:'വിഷയങ്ങൾ', marks:'മാർക്കുകൾ', generate:'ഉണ്ടാക്കുക', examMode:'പരീക്ഷ മോഡ്', semesterExam:'സെമസ്റ്റർ പരീക്ഷ', midExam:'മിഡ് പരീക്ഷ', examDate:'പരീക്ഷ തീയതി', difficulty:'ബുദ്ധിമുട്ട് നില', easy:'എളുപ്പം', normal:'സാധാരണ', brutal:'കഠിനം', studyTime:'പഠന സമയം', startTime:'ആരംഭ സമയം', endTime:'അവസാന സമയം', yourBranch:'നിങ്ങളുടെ ശാഖ', yourSubjects:'നിങ്ങളുടെ വിഷയങ്ങൾ', addSubject:'+ വിഷയം ചേർക്കുക', generatePlan:'⚡ പഠന പദ്ധതി ഉണ്ടാക്കുക' }
+    };
+
+    let currentLang = localStorage.getItem('lang') || 'en';
+
+    function changeLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem('lang', lang);
+      applyTranslations();
+    }
+
+    function applyTranslations() {
+      const t = translations[currentLang] || translations.en;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.dataset.i18n;
+        if (t[key]) el.textContent = t[key];
+      });
+      document.getElementById('langSelect').value = currentLang;
+    }
+
+    // ==================== MOTIVATIONAL QUOTES ====================
+    const quotes = [
+      { text: "Success is the sum of small efforts, repeated day in and day out.", author: "Robert Collier" },
+      { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+      { text: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
+      { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
+      { text: "Hard work beats talent when talent doesn't work hard.", author: "Tim Notke" },
+      { text: "Your future is created by what you do today, not tomorrow.", author: "Robert Kiyosaki" },
+      { text: "The expert in anything was once a beginner.", author: "Helen Hayes" },
+      { text: "Push yourself, because no one else is going to do it for you.", author: "Unknown" },
+      { text: "Great things never come from comfort zones.", author: "Unknown" },
+      { text: "Dream it. Wish it. Do it.", author: "Unknown" }
+    ];
+
+    function loadQuote() {
+      const q = quotes[Math.floor(Math.random() * quotes.length)];
+      document.getElementById('quoteText').textContent = `"${q.text}"`;
+      document.getElementById('quoteAuthor').textContent = `— ${q.author}`;
+    }
+
+    // ==================== THEME ====================
+    function toggleTheme() {
+      const html = document.documentElement;
+      html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('theme', html.dataset.theme);
+    }
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) document.documentElement.dataset.theme = savedTheme;
+
+    // ==================== COUNTDOWN ====================
+    function updateCountdown() {
+      const dateVal = document.getElementById('examDate').value;
+      if (!dateVal) return;
+      const examDate = new Date(dateVal);
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const diff = Math.ceil((examDate - today) / (1000*60*60*24));
+      const display = document.getElementById('countdownDisplay');
+      const num = document.getElementById('countdownNum');
+      if (diff >= 0) {
+        num.textContent = diff;
+        display.classList.add('show');
+        if (diff <= 3) num.style.color = '#ff1744';
+        else if (diff <= 7) num.style.color = '#ffa000';
+        else num.style.color = '#ff6b6b';
+        sessionStorage.setItem('examCountdown', diff);
+      }
+    }
+
+    // Set min date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('examDate').min = today;
+
+    // ==================== REMINDER ====================
+    function openReminderModal() {
+      if (!('Notification' in window)) return showToast('⚠️ Browser does not support notifications');
+      document.getElementById('reminderModal').classList.add('show');
+    }
+    function closeReminderModal() {
+      document.getElementById('reminderModal').classList.remove('show');
+    }
+    function setReminder() {
+      const msg = document.getElementById('reminderMsg').value || 'Time to study! 📚';
+      const time = document.getElementById('reminderTime').value;
+      if (!time) return showToast('⚠️ Please select a time!');
+
+      Notification.requestPermission().then(perm => {
+        if (perm === 'granted') {
+          const [h, m] = time.split(':').map(Number);
+          const now = new Date();
+          const remind = new Date();
+          remind.setHours(h, m, 0, 0);
+          if (remind <= now) remind.setDate(remind.getDate() + 1);
+          const delay = remind - now;
+
+          setTimeout(() => {
+            new Notification('NeuralPrep 📚', { body: msg, icon: '📚' });
+          }, delay);
+
+          localStorage.setItem('reminder', JSON.stringify({ msg, time }));
+          showToast(`✅ Reminder set for ${time}!`);
+          closeReminderModal();
+        } else {
+          showToast('⚠️ Please allow notifications in browser settings');
+        }
+      });
+    }
+
+    // ==================== STATE ====================
+    let examMode = 'semester', diffLevel = 'normal', selectedBranch = null;
+    let subjects = [];
+    const subjectColors = ['#6c63ff','#00d9c0','#ff6b6b','#ffa000','#00bcd4','#e91e63','#4caf50','#ff9800'];
+
+    const branchPresets = {
+      CSE: ['Mathematics','Data Structures','Machine Learning','DBMS','Computer Networks'],
+      ECE: ['Signals & Systems','Digital Electronics','Analog Circuits','Communication Systems','VLSI Design'],
+      MECH: ['Thermodynamics','Fluid Mechanics','Strength of Materials','Manufacturing Technology','Machine Design'],
+      CIVIL: ['Structural Analysis','Geotechnical Engineering','Fluid Mechanics','Transportation Engineering','Environmental Engineering'],
+      MBA: ['Financial Management','Marketing Management','Organizational Behavior','Operations Research','Business Analytics'],
+      CUSTOM: []
+    };
+
+    function selectRadio(el, group, val) {
+      document.querySelectorAll(`[onclick*="'${group}'"]`).forEach(r => r.classList.remove('selected'));
+      el.classList.add('selected');
+      if (group === 'exam') examMode = val;
+      if (group === 'diff') diffLevel = val;
+    }
+
+    // Time slots
+    function generateTimeSlots() {
+      const slots = [];
+      for (let h=0;h<24;h++) for (let m of [0,30]) {
+        const d = new Date(2000,0,1,h,m);
+        slots.push(d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true}));
+      }
+      return slots;
+    }
+    const slots = generateTimeSlots();
+    ['startTime','endTime'].forEach(id => {
+      const sel = document.getElementById(id);
+      slots.forEach(s => sel.add(new Option(s,s)));
+    });
+    document.getElementById('startTime').value = '06:00 PM';
+    document.getElementById('endTime').value = '11:30 PM';
+
+    function selectBranch(el) {
+      document.querySelectorAll('.branch-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedBranch = el.dataset.branch;
+      const preset = branchPresets[selectedBranch] || [];
+      subjects = preset.map((name,i) => ({
+        id: Date.now()+i, name, color: subjectColors[i % subjectColors.length],
+        written:18, assign:4, attend:7, topics:[], notes:''
+      }));
+      renderSubjects();
+      showToast(`✅ ${el.querySelector('.branch-name').textContent} subjects loaded!`);
+    }
+
+    function renderSubjects() {
+      const list = document.getElementById('subjectsList');
+      list.innerHTML = '';
+      subjects.forEach((sub) => {
+        const card = document.createElement('div');
+        card.className = 'subject-card';
+        card.id = `sub-${sub.id}`;
+        card.innerHTML = `
+          <div class="subject-header" onclick="toggleSubject(${sub.id})">
+            <div class="subject-header-left">
+              <div class="subject-color" style="background:${sub.color}"></div>
+              <input class="subject-name-input" value="${sub.name}" onclick="event.stopPropagation()"
+                onchange="updateSubjectName(${sub.id},this.value)" placeholder="Subject name"/>
+            </div>
+            <div class="subject-actions">
+              <button class="btn-icon expand-btn" onclick="event.stopPropagation();toggleSubject(${sub.id})">
+                <span class="chevron">▾</span>
+              </button>
+              <button class="btn-icon" onclick="event.stopPropagation();removeSubject(${sub.id})">✕</button>
+            </div>
+          </div>
+          <div class="subject-body">
+            <div class="marks-grid">
+              <div class="mark-field">
+                <label>Written / Mid (0–25)</label>
+                <div class="mark-input-wrap">
+                  <span class="mark-val" id="written-val-${sub.id}">${sub.written}</span>
+                  <input type="range" min="0" max="25" value="${sub.written}" oninput="updateMark(${sub.id},'written',this.value)" id="written-${sub.id}"/>
+                </div>
+              </div>
+              <div class="mark-field">
+                <label>Assignment (0–5)</label>
+                <div class="mark-input-wrap">
+                  <span class="mark-val" id="assign-val-${sub.id}">${sub.assign}</span>
+                  <input type="range" min="0" max="5" value="${sub.assign}" oninput="updateMark(${sub.id},'assign',this.value)" id="assign-${sub.id}"/>
+                </div>
+              </div>
+              <div class="mark-field">
+                <label>Attendance (0–10)</label>
+                <div class="mark-input-wrap">
+                  <span class="mark-val" id="attend-val-${sub.id}">${sub.attend}</span>
+                  <input type="range" min="0" max="10" value="${sub.attend}" oninput="updateMark(${sub.id},'attend',this.value)" id="attend-${sub.id}"/>
+                </div>
+              </div>
+            </div>
+            <div class="topics-section">
+              <div class="topics-header">
+                <span class="topics-label">📌 Important Topics</span>
+                <button class="btn-ai-suggest" id="ai-btn-${sub.id}" onclick="fetchAITopics(${sub.id},'${sub.name}')">✨ AI Suggest</button>
+              </div>
+              <div class="topics-tags" id="topics-${sub.id}">
+                ${sub.topics.map(t => topicTagHTML(sub.id, t)).join('')}
+              </div>
+              <div class="topic-input-row">
+                <input type="text" placeholder="Add topic manually..." id="topic-input-${sub.id}" onkeydown="if(event.key==='Enter') addTopicManual(${sub.id})"/>
+                <button class="btn-add-topic" onclick="addTopicManual(${sub.id})">+</button>
+              </div>
+            </div>
+            <div class="notes-section">
+              <div class="notes-label">📝 Quick Notes</div>
+              <textarea class="notes-textarea" id="notes-${sub.id}" placeholder="Write your quick notes for ${sub.name} here... (auto-saved)" onchange="saveNotes(${sub.id},this.value)">${sub.notes}</textarea>
+              <div class="notes-save-hint">✅ Notes auto-saved in session</div>
+            </div>
+          </div>`;
+        list.appendChild(card);
+        updateSliderBg(document.getElementById(`written-${sub.id}`), 25);
+        updateSliderBg(document.getElementById(`assign-${sub.id}`), 5);
+        updateSliderBg(document.getElementById(`attend-${sub.id}`), 10);
+      });
+    }
+
+    function topicTagHTML(subId, topic) {
+      return `<div class="topic-tag" id="tag-${subId}-${topic.replace(/\s/g,'_')}">
+        ${topic}<span class="remove-tag" onclick="removeTopic(${subId},'${topic}')">✕</span>
+      </div>`;
+    }
+
+    function toggleSubject(id) {
+      document.getElementById(`sub-${id}`).classList.toggle('open');
+    }
+    function updateSubjectName(id, val) {
+      const s = subjects.find(s=>s.id===id);
+      if(s) s.name = val;
+    }
+    function removeSubject(id) {
+      subjects = subjects.filter(s=>s.id!==id);
+      renderSubjects();
+    }
+    function addSubject() {
+      const idx = subjects.length;
+      subjects.push({ id:Date.now(), name:'New Subject', color:subjectColors[idx%subjectColors.length], written:15, assign:3, attend:6, topics:[], notes:'' });
+      renderSubjects();
+      setTimeout(() => {
+        const last = subjects[subjects.length-1];
+        const card = document.getElementById(`sub-${last.id}`);
+        card.classList.add('open');
+        card.querySelector('.subject-name-input').select();
+      }, 50);
+    }
+    function updateMark(id, field, val) {
+      const s = subjects.find(s=>s.id===id);
+      if(!s) return;
+      s[field] = parseInt(val);
+      document.getElementById(`${field}-val-${id}`).textContent = val;
+      const maxMap = {written:25, assign:5, attend:10};
+      updateSliderBg(document.getElementById(`${field}-${id}`), maxMap[field]);
+    }
+    function updateSliderBg(input, max) {
+      if(!input) return;
+      const pct = (input.value/max)*100;
+      input.style.background = `linear-gradient(to right, var(--accent) ${pct}%, var(--border) ${pct}%)`;
+    }
+    function saveNotes(id, val) {
+      const s = subjects.find(s=>s.id===id);
+      if(s) s.notes = val;
+    }
+    function addTopicManual(id) {
+      const inp = document.getElementById(`topic-input-${id}`);
+      const topic = inp.value.trim();
+      if(!topic) return;
+      const s = subjects.find(s=>s.id===id);
+      if(!s.topics.includes(topic)) {
+        s.topics.push(topic);
+        document.getElementById(`topics-${id}`).insertAdjacentHTML('beforeend', topicTagHTML(id, topic));
+      }
+      inp.value = '';
+    }
+    function removeTopic(id, topic) {
+      const s = subjects.find(s=>s.id===id);
+      if(s) s.topics = s.topics.filter(t=>t!==topic);
+      const tag = document.getElementById(`tag-${id}-${topic.replace(/\s/g,'_')}`);
+      if(tag) tag.remove();
+    }
+
+    async function fetchAITopics(subId, subjectName) {
+      const btn = document.getElementById(`ai-btn-${subId}`);
+      btn.classList.add('loading'); btn.textContent = '⏳ Fetching...';
+      try {
+        const res = await fetch('/api/topics', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({subject:subjectName}) });
+        const data = await res.json();
+        const topics = data.topics || [];
+        const s = subjects.find(s=>s.id===subId);
+        const container = document.getElementById(`topics-${subId}`);
+        topics.forEach(t => {
+          if(!s.topics.includes(t)) { s.topics.push(t); container.insertAdjacentHTML('beforeend', topicTagHTML(subId, t)); }
+        });
+        showToast(`✨ AI suggested ${topics.length} topics for ${subjectName}!`);
+      } catch { showToast('⚠️ AI unavailable. Add topics manually.'); }
+      btn.classList.remove('loading'); btn.textContent = '✨ AI Suggest';
+    }
+
+    async function generatePlan() {
+      if(!selectedBranch) return showToast('⚠️ Please select your branch first!');
+      if(subjects.length===0) return showToast('⚠️ Please add at least one subject!');
+      const btn = document.getElementById('generateBtn');
+      btn.disabled = true; btn.textContent = '⚙️ Analyzing...';
+      const payload = {
+        examMode, diffLevel,
+        startTime: document.getElementById('startTime').value,
+        endTime: document.getElementById('endTime').value,
+        examDate: document.getElementById('examDate').value,
+        subjects: subjects.map(s => ({ name:s.name, color:s.color, topics:s.topics, notes:s.notes, written:s.written, assign:s.assign, attend:s.attend }))
+      };
+      try {
+        const res = await fetch('/api/predict', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+        const data = await res.json();
+        sessionStorage.setItem('planResult', JSON.stringify({...data, config:payload}));
+        window.location.href = 'results.html';
+      } catch {
+        const result = clientPredict(payload);
+        sessionStorage.setItem('planResult', JSON.stringify({...result, config:payload}));
+        window.location.href = 'results.html';
+      }
+    }
+
+    function clientPredict(payload) {
+      const maxMark = payload.examMode==='mid'?30:100;
+      const multiplier = payload.diffLevel==='easy'?0.75:payload.diffLevel==='brutal'?1.15:1.0;
+      const predictions = payload.subjects.map(s => {
+        const dailyScore = s.assign+s.attend;
+        const dailyPerc = (dailyScore/15)*100;
+        const midPerc = payload.examMode==='mid'?dailyPerc:((Math.min(s.written+s.assign,30)/30)*100);
+        const avgPerc = (midPerc+dailyPerc)/2;
+        const predicted = Math.min(Math.round((avgPerc*multiplier/100)*maxMark),maxMark);
+        return { subject:s.name, color:s.color, topics:s.topics, notes:s.notes, predicted, maxMark };
+      });
+      return { predictions, maxMark };
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent=msg; t.classList.add('show');
+      setTimeout(()=>t.classList.remove('show'),3000);
+    }
+
+    // Init
+    loadQuote();
+    applyTranslations();
+    // Restore saved reminder hint
+    const savedReminder = localStorage.getItem('reminder');
+    if(savedReminder) {
+      const r = JSON.parse(savedReminder);
+      document.getElementById('reminderText').innerHTML = `<strong>⏰ Reminder set for ${r.time}</strong> — "${r.msg}"`;
+    }
+  </script>
+</body>
+</html>

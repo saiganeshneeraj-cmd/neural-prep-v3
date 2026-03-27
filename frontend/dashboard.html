@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NeuralPrep — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg:#05060f; --bg2:#0b0d1e;
+      --surface:rgba(255,255,255,0.04); --surface2:rgba(255,255,255,0.07);
+      --border:rgba(255,255,255,0.08);
+      --accent:#6c63ff; --accent2:#00d9c0; --accent3:#ff6b6b;
+      --success:#00e676; --warning:#ffa000; --danger:#ff1744;
+      --text:#e8e9f3; --muted:#6b6d8a;
+      --glow:rgba(108,99,255,0.35);
+    }
+    [data-theme="light"] {
+      --bg:#f0f1fa; --bg2:#e4e6f7;
+      --surface:rgba(0,0,0,0.04); --surface2:rgba(0,0,0,0.07);
+      --border:rgba(0,0,0,0.08); --text:#0d0e1f; --muted:#7b7d9a;
+      --glow:rgba(108,99,255,0.2);
+    }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+    nav {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:1.1rem 3rem; background:rgba(5,6,15,0.85); backdrop-filter:blur(20px);
+      border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100;
+    }
+    [data-theme="light"] nav { background:rgba(240,241,250,0.9); }
+    .nav-logo { font-family:'Syne',sans-serif; font-weight:800; font-size:1.3rem; background:linear-gradient(135deg,var(--accent),var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; text-decoration:none; }
+    .nav-right { display:flex; align-items:center; gap:1rem; }
+    .nav-right a { color:var(--muted); text-decoration:none; font-size:0.88rem; transition:color 0.2s; }
+    .nav-right a:hover { color:var(--text); }
+    .theme-btn { background:var(--surface); border:1px solid var(--border); color:var(--text); padding:0.4rem 0.9rem; border-radius:20px; cursor:pointer; font-size:0.8rem; font-family:'DM Sans',sans-serif; transition:all 0.2s; }
+    .theme-btn:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+    .page-wrap { max-width:1100px; margin:0 auto; padding:3rem 2rem 5rem; }
+    .page-header { margin-bottom:2.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; }
+    .page-header h1 { font-family:'Syne',sans-serif; font-size:clamp(1.6rem,3vw,2.2rem); font-weight:800; letter-spacing:-0.5px; }
+    .page-header p { color:var(--muted); font-size:0.9rem; margin-top:0.3rem; }
+
+    /* No data state */
+    .no-data {
+      text-align:center; padding:5rem 2rem;
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:20px;
+    }
+    .no-data-icon { font-size:3rem; margin-bottom:1rem; }
+    .no-data h3 { font-family:'Syne',sans-serif; font-size:1.3rem; font-weight:700; margin-bottom:0.5rem; }
+    .no-data p { color:var(--muted); margin-bottom:1.5rem; }
+    .btn-go { display:inline-flex; background:linear-gradient(135deg,var(--accent),#9b59b6); color:#fff; padding:0.8rem 2rem; border-radius:12px; text-decoration:none; font-weight:600; font-size:0.9rem; transition:all 0.2s; }
+    .btn-go:hover { transform:translateY(-2px); box-shadow:0 6px 25px var(--glow); }
+
+    /* STATS OVERVIEW */
+    .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1.2rem; margin-bottom:2rem; }
+    .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:1.5rem; text-align:center; transition:all 0.3s; position:relative; overflow:hidden; }
+    .stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+    .stat-card.purple::before { background:linear-gradient(90deg,var(--accent),#9b59b6); }
+    .stat-card.teal::before { background:linear-gradient(90deg,var(--accent2),#00bfa5); }
+    .stat-card.red::before { background:linear-gradient(90deg,var(--accent3),#ff8a80); }
+    .stat-card.green::before { background:linear-gradient(90deg,var(--success),#69f0ae); }
+    .stat-card:hover { transform:translateY(-4px); }
+    .stat-icon { font-size:1.8rem; margin-bottom:0.5rem; }
+    .stat-num { font-family:'Syne',sans-serif; font-size:2.2rem; font-weight:800; line-height:1; }
+    .stat-card.purple .stat-num { color:var(--accent); }
+    .stat-card.teal .stat-num { color:var(--accent2); }
+    .stat-card.red .stat-num { color:var(--accent3); }
+    .stat-card.green .stat-num { color:var(--success); }
+    .stat-label { color:var(--muted); font-size:0.8rem; margin-top:0.3rem; }
+
+    /* COUNTDOWN */
+    .countdown-card {
+      background:linear-gradient(135deg,rgba(255,107,107,0.1),rgba(255,160,0,0.08));
+      border:1px solid rgba(255,107,107,0.2); border-radius:16px;
+      padding:1.5rem 2rem; margin-bottom:2rem;
+      display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;
+    }
+    .countdown-left { display:flex; align-items:center; gap:1rem; }
+    .countdown-big { font-family:'Syne',sans-serif; font-size:3rem; font-weight:800; color:#ff6b6b; line-height:1; }
+    .countdown-text h3 { font-family:'Syne',sans-serif; font-weight:700; }
+    .countdown-text p { color:var(--muted); font-size:0.85rem; }
+
+    /* CHART */
+    .chart-card { background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:2rem; margin-bottom:2rem; }
+    .chart-title { font-family:'Syne',sans-serif; font-weight:700; margin-bottom:1.5rem; font-size:1rem; display:flex; align-items:center; gap:0.5rem; }
+    .chart-wrap { position:relative; height:280px; }
+
+    /* SUBJECT PERFORMANCE */
+    .performance-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:1rem; margin-bottom:2rem; }
+    .perf-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:1.3rem; transition:all 0.3s; }
+    .perf-card:hover { transform:translateY(-3px); }
+    .perf-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; }
+    .perf-subject { font-family:'Syne',sans-serif; font-weight:700; font-size:0.95rem; display:flex; align-items:center; gap:0.5rem; }
+    .perf-dot { width:8px; height:8px; border-radius:50%; }
+    .perf-score { font-family:'Syne',sans-serif; font-weight:800; font-size:1.3rem; }
+    .progress-bar-wrap { background:var(--border); border-radius:10px; height:6px; overflow:hidden; }
+    .progress-bar { height:100%; border-radius:10px; transition:width 1s ease; }
+    .perf-status { font-size:0.75rem; margin-top:0.5rem; font-weight:600; }
+    .perf-notes { margin-top:0.75rem; font-size:0.8rem; color:var(--muted); background:var(--surface2); padding:0.5rem 0.75rem; border-radius:8px; font-style:italic; border-left:3px solid var(--accent2); display:none; }
+    .perf-notes.show { display:block; }
+
+    /* BADGES */
+    .badges-section { margin-bottom:2rem; }
+    .section-title { font-family:'Syne',sans-serif; font-weight:800; font-size:1.2rem; margin-bottom:1.2rem; display:flex; align-items:center; gap:0.5rem; }
+    .badges-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:1rem; }
+    .badge-card {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:16px; padding:1.3rem; text-align:center;
+      transition:all 0.3s; position:relative; overflow:hidden;
+    }
+    .badge-card.earned {
+      border-color:rgba(255,215,0,0.4);
+      background:rgba(255,215,0,0.06);
+      box-shadow:0 0 20px rgba(255,215,0,0.1);
+    }
+    .badge-card.locked { opacity:0.4; filter:grayscale(1); }
+    .badge-card:hover { transform:translateY(-4px); }
+    .badge-icon { font-size:2.2rem; margin-bottom:0.5rem; }
+    .badge-name { font-family:'Syne',sans-serif; font-weight:700; font-size:0.82rem; margin-bottom:0.3rem; }
+    .badge-desc { font-size:0.72rem; color:var(--muted); line-height:1.4; }
+    .badge-earned-label { position:absolute; top:0.5rem; right:0.5rem; background:gold; color:#000; padding:0.15rem 0.4rem; border-radius:6px; font-size:0.65rem; font-weight:700; }
+    .badge-card.earned .badge-earned-label { display:block; }
+    .badge-card:not(.earned) .badge-earned-label { display:none; }
+
+    /* NOTES SUMMARY */
+    .notes-summary { margin-bottom:2rem; }
+    .notes-list { display:flex; flex-direction:column; gap:0.75rem; }
+    .note-item { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:1rem 1.3rem; border-left:4px solid var(--accent2); }
+    .note-subject { font-family:'Syne',sans-serif; font-weight:700; font-size:0.85rem; margin-bottom:0.3rem; }
+    .note-content { font-size:0.85rem; color:var(--muted); line-height:1.6; }
+
+    @media(max-width:600px) { nav { padding:1rem 1.2rem; } .page-wrap { padding:2rem 1rem 4rem; } }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="index.html" class="nav-logo">NeuralPrep</a>
+    <div class="nav-right">
+      <a href="planner.html">← Planner</a>
+      <a href="results.html">Results</a>
+      <button class="theme-btn" onclick="toggleTheme()">🌓 Theme</button>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+    <div class="page-header">
+      <div>
+        <h1>📈 Progress Dashboard</h1>
+        <p>Your performance overview, badges, and notes all in one place.</p>
+      </div>
+    </div>
+
+    <div id="mainDash" style="display:none">
+      <!-- COUNTDOWN -->
+      <div class="countdown-card" id="countdownCard" style="display:none">
+        <div class="countdown-left">
+          <div class="countdown-big" id="dashCountdown">0</div>
+          <div class="countdown-text">
+            <h3>Days Until Exam</h3>
+            <p id="urgencyText">Keep studying consistently!</p>
+          </div>
+        </div>
+        <div style="font-size:2rem" id="countdownEmoji">📅</div>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-grid">
+        <div class="stat-card purple">
+          <div class="stat-icon">📚</div>
+          <div class="stat-num" id="totalSubjects">0</div>
+          <div class="stat-label">Total Subjects</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-icon">🟢</div>
+          <div class="stat-num" id="excellentCount">0</div>
+          <div class="stat-label">Excellent Subjects</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-icon">🚨</div>
+          <div class="stat-num" id="criticalCount">0</div>
+          <div class="stat-label">Critical Subjects</div>
+        </div>
+        <div class="stat-card teal">
+          <div class="stat-icon">📊</div>
+          <div class="stat-num" id="avgScore">0</div>
+          <div class="stat-label">Average Score %</div>
+        </div>
+      </div>
+
+      <!-- CHART -->
+      <div class="chart-card">
+        <div class="chart-title">📊 Subject Performance Overview</div>
+        <div class="chart-wrap"><canvas id="dashChart"></canvas></div>
+      </div>
+
+      <!-- SUBJECT CARDS -->
+      <div class="section-title">🎯 Subject Breakdown</div>
+      <div class="performance-grid" id="perfGrid"></div>
+
+      <!-- BADGES -->
+      <div class="badges-section">
+        <div class="section-title">🏆 Achievements & Badges</div>
+        <div class="badges-grid" id="badgesGrid"></div>
+      </div>
+
+      <!-- NOTES SUMMARY -->
+      <div class="notes-summary" id="notesSummary" style="display:none">
+        <div class="section-title">📝 Your Quick Notes</div>
+        <div class="notes-list" id="notesList"></div>
+      </div>
+    </div>
+
+    <!-- NO DATA -->
+    <div id="noData" class="no-data">
+      <div class="no-data-icon">📊</div>
+      <h3>No Plan Generated Yet</h3>
+      <p>Generate your study plan first to see your dashboard!</p>
+      <a href="planner.html" class="btn-go">⚡ Generate My Plan</a>
+    </div>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      html.dataset.theme = html.dataset.theme==='dark'?'light':'dark';
+      localStorage.setItem('theme', html.dataset.theme);
+    }
+    const savedTheme = localStorage.getItem('theme');
+    if(savedTheme) document.documentElement.dataset.theme = savedTheme;
+
+    function getStatus(predicted, maxMark) {
+      if(predicted < maxMark*0.45) return 'critical';
+      if(predicted < maxMark*0.75) return 'average';
+      return 'excellent';
+    }
+
+    const allBadges = [
+      { id:'top_performer', icon:'🥇', name:'Top Performer', desc:'Score 90%+ in any subject', condition: p => p.some(s => (s.predicted/s.maxMark)*100 >= 90) },
+      { id:'all_pass', icon:'✅', name:'All Clear', desc:'Pass all subjects (45%+)', condition: p => p.every(s => getStatus(s.predicted,s.maxMark) !== 'critical') },
+      { id:'no_critical', icon:'🛡️', name:'No Critical Zone', desc:'No subject in critical zone', condition: p => !p.some(s => getStatus(s.predicted,s.maxMark)==='critical') },
+      { id:'five_subjects', icon:'📚', name:'Full Load', desc:'Plan with 5+ subjects', condition: p => p.length >= 5 },
+      { id:'avg_75', icon:'⭐', name:'Above Average', desc:'Overall average above 75%', condition: p => { const avg = p.reduce((a,s)=>(a+(s.predicted/s.maxMark)*100),0)/p.length; return avg >= 75; }},
+      { id:'all_excellent', icon:'🌟', name:'Excellence', desc:'All subjects excellent', condition: p => p.every(s => getStatus(s.predicted,s.maxMark)==='excellent') },
+      { id:'never_give_up', icon:'💪', name:'Never Give Up', desc:'Generated a study plan', condition: () => true },
+      { id:'notes_taker', icon:'📝', name:'Notes Taker', desc:'Added notes to any subject', condition: (p, cfg) => cfg?.subjects?.some(s => s.notes && s.notes.trim().length > 0) },
+    ];
+
+    window.addEventListener('load', () => {
+      const raw = sessionStorage.getItem('planResult');
+      if(!raw) { document.getElementById('noData').style.display='block'; return; }
+
+      const plan = JSON.parse(raw);
+      const predictions = plan.predictions;
+      const cfg = plan.config;
+
+      document.getElementById('noData').style.display='none';
+      document.getElementById('mainDash').style.display='block';
+
+      // Countdown
+      const countdown = sessionStorage.getItem('examCountdown');
+      if(countdown) {
+        const days = parseInt(countdown);
+        document.getElementById('countdownCard').style.display='flex';
+        document.getElementById('dashCountdown').textContent = days;
+        const urgency = days <= 3 ? '🚨 Exam is very close! Study hard!' : days <= 7 ? '⚡ Less than a week! Focus now!' : '✅ Keep studying consistently!';
+        document.getElementById('urgencyText').textContent = urgency;
+        document.getElementById('countdownEmoji').textContent = days <= 3 ? '🚨' : days <= 7 ? '⚡' : '📅';
+      }
+
+      // Stats
+      const maxMark = predictions[0]?.maxMark || 100;
+      const excellent = predictions.filter(p=>getStatus(p.predicted,maxMark)==='excellent').length;
+      const critical = predictions.filter(p=>getStatus(p.predicted,maxMark)==='critical').length;
+      const avg = Math.round(predictions.reduce((a,p)=>a+(p.predicted/maxMark)*100,0)/predictions.length);
+
+      document.getElementById('totalSubjects').textContent = predictions.length;
+      document.getElementById('excellentCount').textContent = excellent;
+      document.getElementById('criticalCount').textContent = critical;
+      document.getElementById('avgScore').textContent = avg + '%';
+
+      // Chart
+      const isDark = document.documentElement.dataset.theme !== 'light';
+      const ctx = document.getElementById('dashChart').getContext('2d');
+      new Chart(ctx, {
+        type:'radar',
+        data: {
+          labels: predictions.map(p=>p.subject),
+          datasets: [{
+            label:'Performance %',
+            data: predictions.map(p=>Math.round((p.predicted/maxMark)*100)),
+            backgroundColor:'rgba(108,99,255,0.2)',
+            borderColor:'rgba(108,99,255,0.8)',
+            pointBackgroundColor: predictions.map(p=>{
+              const s=getStatus(p.predicted,maxMark);
+              return s==='critical'?'#ff1744':s==='average'?'#ffa000':'#00e676';
+            }),
+            pointRadius:6, borderWidth:2
+          }]
+        },
+        options:{
+          responsive:true, maintainAspectRatio:false,
+          scales:{ r:{ min:0, max:100, ticks:{ color:'#6b6d8a', stepSize:20 }, grid:{ color:'rgba(255,255,255,0.06)' }, pointLabels:{ color:isDark?'#e8e9f3':'#0d0e1f', font:{size:11} } }},
+          plugins:{ legend:{display:false} }
+        }
+      });
+
+      // Subject performance cards
+      const grid = document.getElementById('perfGrid');
+      predictions.forEach(p => {
+        const status = getStatus(p.predicted, maxMark);
+        const pct = Math.round((p.predicted/maxMark)*100);
+        const color = status==='critical'?'#ff1744':status==='average'?'#ffa000':'#00e676';
+        const statusLabel = status==='critical'?'🚨 CRITICAL':status==='average'?'🟠 AVERAGE':'🟢 EXCELLENT';
+        const hasNotes = p.notes && p.notes.trim().length > 0;
+        const card = document.createElement('div');
+        card.className = 'perf-card';
+        card.innerHTML = `
+          <div class="perf-header">
+            <div class="perf-subject"><div class="perf-dot" style="background:${p.color}"></div>${p.subject}</div>
+            <div class="perf-score" style="color:${color}">${p.predicted}/${maxMark}</div>
+          </div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar" style="width:${pct}%;background:${color}"></div>
+          </div>
+          <div class="perf-status" style="color:${color};margin-top:0.5rem">${statusLabel} — ${pct}%</div>
+          ${hasNotes ? `<div class="perf-notes show">📝 ${p.notes}</div>` : ''}
+        `;
+        grid.appendChild(card);
+      });
+
+      // Badges
+      const badgesGrid = document.getElementById('badgesGrid');
+      allBadges.forEach(badge => {
+        const earned = badge.condition(predictions, cfg);
+        const card = document.createElement('div');
+        card.className = `badge-card ${earned?'earned':'locked'}`;
+        card.innerHTML = `
+          <div class="badge-earned-label">✓ EARNED</div>
+          <div class="badge-icon">${badge.icon}</div>
+          <div class="badge-name">${badge.name}</div>
+          <div class="badge-desc">${badge.desc}</div>
+        `;
+        if(earned) card.style.animation = 'none';
+        badgesGrid.appendChild(card);
+      });
+
+      // Notes summary
+      const notesWithContent = predictions.filter(p => p.notes && p.notes.trim().length > 0);
+      if(notesWithContent.length > 0) {
+        document.getElementById('notesSummary').style.display = 'block';
+        const notesList = document.getElementById('notesList');
+        notesWithContent.forEach(p => {
+          const item = document.createElement('div');
+          item.className = 'note-item';
+          item.innerHTML = `<div class="note-subject" style="color:${p.color}">${p.subject}</div><div class="note-content">${p.notes}</div>`;
+          notesList.appendChild(item);
+        });
+      }
+    });
+  </script>
+</body>
+</html>
