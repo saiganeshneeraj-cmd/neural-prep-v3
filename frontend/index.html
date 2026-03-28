@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>NeuralPrep — Smart Exam Scheduler</title>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css"/>
   <style>
     :root{--bg:#05060f;--bg2:#0b0d1e;--surface:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);--accent:#6c63ff;--accent2:#00d9c0;--accent3:#ff6b6b;--text:#e8e9f3;--muted:#6b6d8a;--glow:rgba(108,99,255,0.35);}
@@ -12,121 +13,371 @@
     html{scroll-behavior:smooth;}
     body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;cursor:none;}
     .cursor{width:12px;height:12px;background:var(--accent);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:99999;mix-blend-mode:screen;}
-    .cursor-follower{width:36px;height:36px;border:1.5px solid var(--accent);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:99998;transition:transform 0.18s ease;opacity:0.5;}
-    #bgCanvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;opacity:0.5;}
-    nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:1.2rem 4rem;background:rgba(5,6,15,0.7);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
-    [data-theme="light"] nav{background:rgba(240,241,250,0.8);}
-    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-    .nav-links{display:flex;gap:2rem;align-items:center;}
-    .nav-links a{color:var(--muted);text-decoration:none;font-size:0.9rem;font-weight:500;transition:color 0.2s;}
+    .cursor-follower{width:36px;height:36px;border:1.5px solid var(--accent);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:99998;opacity:0.5;transition:width 0.2s,height 0.2s,border-color 0.2s;}
+    #bgCanvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;opacity:0.45;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:1.2rem 4rem;background:rgba(5,6,15,0.75);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+    [data-theme="light"] nav{background:rgba(240,241,250,0.88);}
+    .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none;}
+    .nav-links{display:flex;gap:1.8rem;align-items:center;}
+    .nav-links a{color:var(--muted);text-decoration:none;font-size:0.88rem;font-weight:500;transition:color 0.2s;}
     .nav-links a:hover{color:var(--text);}
-    .theme-toggle{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.45rem 1rem;border-radius:20px;cursor:pointer;font-size:0.85rem;font-family:'DM Sans',sans-serif;transition:all 0.2s;}
+    .theme-toggle{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.9rem;border-radius:20px;cursor:pointer;font-size:0.82rem;font-family:'DM Sans',sans-serif;transition:all 0.2s;}
     .theme-toggle:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+    /* ====== HERO ====== */
     .hero{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8rem 2rem 4rem;}
     .hero-badge{display:inline-flex;align-items:center;gap:0.5rem;background:rgba(108,99,255,0.12);border:1px solid rgba(108,99,255,0.3);color:var(--accent);padding:0.4rem 1rem;border-radius:20px;font-size:0.8rem;font-weight:500;margin-bottom:2rem;letter-spacing:0.05em;text-transform:uppercase;}
     .hero-badge span{width:6px;height:6px;background:var(--accent2);border-radius:50%;animation:pulse 1.5s infinite;}
     @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.5)}}
-    .hero h1{font-family:'Syne',sans-serif;font-size:clamp(3rem,8vw,6.5rem);font-weight:800;line-height:1;letter-spacing:-2px;margin-bottom:1.5rem;}
+    .hero h1{font-family:'Syne',sans-serif;font-size:clamp(3rem,8vw,6.5rem);font-weight:800;line-height:1.05;letter-spacing:-2px;margin-bottom:1.5rem;}
     .hero h1 .line1{display:block;color:var(--text);}
-    .hero h1 .line2{display:block;background:linear-gradient(135deg,var(--accent),var(--accent2),var(--accent3));background-size:200% 200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:gradShift 4s ease infinite;}
+
+    /* ===== KEY FIX: Typewriter with fixed height container ===== */
+    .tw-wrap{
+      display:block;
+      /* Fixed line-height so switching words never changes page height */
+      height:1.1em;
+      /* gradient text */
+      background:linear-gradient(135deg,var(--accent),var(--accent2),var(--accent3));
+      background-size:300% 300%;
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      animation:gradShift 5s ease infinite;
+    }
     @keyframes gradShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
-    .hero-sub{font-size:1.15rem;color:var(--muted);max-width:560px;line-height:1.8;margin-bottom:3rem;font-weight:300;}
+    #twText{display:inline;}
+    .tw-cursor{display:inline-block;width:3px;height:0.78em;background:var(--accent2);margin-left:3px;vertical-align:middle;border-radius:2px;animation:twBlink 0.75s step-end infinite;}
+    @keyframes twBlink{0%,100%{opacity:1}50%{opacity:0}}
+
+    .hero-sub{font-size:1.1rem;color:var(--muted);max-width:560px;line-height:1.8;margin-bottom:3rem;font-weight:300;}
     .hero-actions{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;}
     .btn-primary{display:inline-flex;align-items:center;gap:0.6rem;background:linear-gradient(135deg,var(--accent),#9b59b6);color:#fff;padding:0.9rem 2.2rem;border-radius:50px;text-decoration:none;font-weight:600;font-size:0.95rem;transition:all 0.3s;box-shadow:0 0 30px var(--glow);}
     .btn-primary:hover{transform:translateY(-3px);box-shadow:0 0 50px var(--glow);}
     .btn-secondary{display:inline-flex;align-items:center;gap:0.6rem;background:var(--surface);color:var(--text);padding:0.9rem 2.2rem;border-radius:50px;text-decoration:none;font-weight:500;font-size:0.95rem;border:1px solid var(--border);transition:all 0.3s;}
     .btn-secondary:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-3px);}
+    .scroll-hint{position:absolute;bottom:2rem;display:flex;flex-direction:column;align-items:center;gap:0.4rem;color:var(--muted);font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;animation:floatY 2.5s ease infinite;}
+    .scroll-hint::after{content:'';width:1px;height:40px;background:linear-gradient(to bottom,var(--muted),transparent);}
+    @keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
+
+    /* ====== STATS ====== */
     .stats-bar{position:relative;z-index:1;display:flex;justify-content:center;padding:3rem 4rem;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--bg2);}
     .stat-item{flex:1;max-width:200px;text-align:center;padding:1.5rem 2rem;border-right:1px solid var(--border);}
     .stat-item:last-child{border-right:none;}
     .stat-num{font-family:'Syne',sans-serif;font-size:2.8rem;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;}
-    .stat-label{color:var(--muted);font-size:0.8rem;margin-top:0.4rem;text-transform:uppercase;letter-spacing:0.08em;}
+    .stat-label{color:var(--muted);font-size:0.78rem;margin-top:0.4rem;text-transform:uppercase;letter-spacing:0.08em;}
+
+    /* ====== SECTIONS ====== */
     .section{position:relative;z-index:1;padding:6rem 4rem;max-width:1200px;margin:0 auto;}
     .section-label{font-size:0.75rem;text-transform:uppercase;letter-spacing:0.15em;color:var(--accent2);font-weight:600;margin-bottom:0.8rem;}
     .section-title{font-family:'Syne',sans-serif;font-size:clamp(2rem,4vw,3rem);font-weight:800;line-height:1.1;letter-spacing:-1px;margin-bottom:3.5rem;}
-    .features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem;}
+
+    /* ====== FEATURES ====== */
+    .features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;}
     .feature-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2rem;transition:all 0.3s;position:relative;overflow:hidden;}
     .feature-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));opacity:0;transition:opacity 0.3s;}
     .feature-card:hover{transform:translateY(-6px);border-color:rgba(108,99,255,0.3);box-shadow:0 20px 60px rgba(0,0,0,0.3);}
     .feature-card:hover::before{opacity:1;}
     .feature-icon{width:48px;height:48px;background:rgba(108,99,255,0.12);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:1.2rem;}
-    .feature-card h3{font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:0.6rem;}
-    .feature-card p{color:var(--muted);font-size:0.9rem;line-height:1.7;}
-    .cta-section{position:relative;z-index:1;text-align:center;padding:6rem 2rem;background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);overflow:hidden;}
-    .cta-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:300px;background:radial-gradient(ellipse,rgba(108,99,255,0.15),transparent 70%);pointer-events:none;}
+    .feature-card h3{font-family:'Syne',sans-serif;font-weight:700;font-size:1.05rem;margin-bottom:0.6rem;}
+    .feature-card p{color:var(--muted);font-size:0.88rem;line-height:1.7;}
+
+    /* ====== HOW IT WORKS ====== */
+    .how-section{position:relative;z-index:1;padding:6rem 4rem;background:var(--bg2);border-top:1px solid var(--border);}
+    .steps-wrap{max-width:1200px;margin:0 auto;}
+    .steps-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:2rem;}
+    .step{text-align:center;padding:1.5rem;}
+    .step-num-wrap{width:60px;height:60px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;background:var(--bg);transition:all 0.3s;}
+    .step:hover .step-num-wrap{border-color:var(--accent);box-shadow:0 0 20px rgba(108,99,255,0.3);}
+    .step-num-wrap span{font-family:'Syne',sans-serif;font-weight:800;font-size:1.05rem;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .step h3{font-family:'Syne',sans-serif;font-weight:700;margin-bottom:0.5rem;font-size:1rem;}
+    .step p{color:var(--muted);font-size:0.85rem;line-height:1.7;}
+
+    /* ====== TESTIMONIALS ====== */
+    .testimonials-section{position:relative;z-index:1;padding:6rem 4rem;max-width:1200px;margin:0 auto;}
+    .testimonials-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;}
+    .testimonial-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:1.8rem;transition:all 0.3s;position:relative;}
+    .testimonial-card:hover{transform:translateY(-4px);border-color:rgba(108,99,255,0.3);}
+    .testimonial-card::before{content:'"';position:absolute;top:0.8rem;right:1.5rem;font-size:5rem;font-family:'Syne',sans-serif;color:var(--accent);opacity:0.1;line-height:1;}
+    .stars{color:#ffa000;font-size:0.85rem;margin-bottom:0.8rem;}
+    .testimonial-text{font-size:0.88rem;color:var(--muted);line-height:1.8;margin-bottom:1.2rem;font-style:italic;}
+    .testimonial-author{display:flex;align-items:center;gap:0.75rem;}
+    .author-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+    .author-name{font-family:'Syne',sans-serif;font-weight:700;font-size:0.88rem;}
+    .author-branch{font-size:0.75rem;color:var(--muted);}
+
+    /* ====== FAQ ====== */
+    .faq-section{position:relative;z-index:1;padding:6rem 4rem;background:var(--bg2);border-top:1px solid var(--border);}
+    .faq-wrap{max-width:800px;margin:0 auto;}
+    .faq-item{border:1px solid var(--border);border-radius:14px;margin-bottom:1rem;overflow:hidden;transition:border-color 0.2s;}
+    .faq-item:hover{border-color:rgba(108,99,255,0.3);}
+    .faq-question{padding:1.2rem 1.5rem;display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-weight:600;font-size:0.92rem;transition:background 0.2s;user-select:none;}
+    .faq-question:hover{background:var(--surface);}
+    .faq-icon{font-size:1.3rem;transition:transform 0.3s;color:var(--accent);flex-shrink:0;line-height:1;}
+    .faq-item.open .faq-icon{transform:rotate(45deg);}
+    .faq-answer{max-height:0;overflow:hidden;transition:max-height 0.35s ease,padding 0.3s;color:var(--muted);font-size:0.88rem;line-height:1.8;}
+    .faq-item.open .faq-answer{max-height:200px;padding:0 1.5rem 1.2rem;}
+
+    /* ====== CTA ====== */
+    .cta-section{position:relative;z-index:1;text-align:center;padding:6rem 2rem;border-top:1px solid var(--border);overflow:hidden;}
+    .cta-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:700px;height:350px;background:radial-gradient(ellipse,rgba(108,99,255,0.12),transparent 70%);pointer-events:none;}
     .cta-section h2{font-family:'Syne',sans-serif;font-size:clamp(2rem,5vw,3.5rem);font-weight:800;letter-spacing:-1.5px;margin-bottom:1rem;position:relative;}
     .cta-section p{color:var(--muted);font-size:1.05rem;margin-bottom:2.5rem;position:relative;}
-    footer{position:relative;z-index:1;text-align:center;padding:2rem;color:var(--muted);font-size:0.82rem;border-top:1px solid var(--border);}
-    footer strong{color:var(--accent);}
-    .typewriter{border-right:2px solid var(--accent2);animation:blink 0.8s step-end infinite;}
-    @keyframes blink{50%{border-color:transparent}}
-    @media(max-width:768px){nav{padding:1rem 1.5rem;}.section{padding:4rem 1.5rem;}.stats-bar{flex-wrap:wrap;padding:2rem;gap:1rem;}}
+
+    /* ====== FOOTER ====== */
+    footer{position:relative;z-index:1;padding:3rem 4rem 2rem;border-top:1px solid var(--border);}
+    .footer-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:2rem;margin-bottom:2rem;}
+    .footer-brand{max-width:260px;}
+    .footer-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.75rem;}
+    .footer-desc{color:var(--muted);font-size:0.83rem;line-height:1.7;}
+    .footer-links h4{font-family:'Syne',sans-serif;font-weight:700;font-size:0.83rem;margin-bottom:1rem;color:var(--text);}
+    .footer-links ul{list-style:none;display:flex;flex-direction:column;gap:0.5rem;}
+    .footer-links ul li a{color:var(--muted);text-decoration:none;font-size:0.83rem;transition:color 0.2s;}
+    .footer-links ul li a:hover{color:var(--accent2);}
+    .footer-bottom{text-align:center;color:var(--muted);font-size:0.78rem;padding-top:2rem;border-top:1px solid var(--border);max-width:1200px;margin:0 auto;}
+    .footer-bottom strong{color:var(--accent);}
+
+    @media(max-width:768px){
+      nav{padding:1rem 1.2rem;}.nav-links{gap:0.8rem;font-size:0.8rem;}
+      .section,.testimonials-section,.faq-section{padding:4rem 1.2rem;}
+      .how-section{padding:4rem 1.2rem;}
+      .stats-bar{flex-wrap:wrap;padding:1.5rem;gap:0;}
+      .stat-item{flex:1 1 40%;border-right:none;border-bottom:1px solid var(--border);min-width:100px;}
+      footer{padding:2rem 1.2rem;}
+      .footer-inner{flex-direction:column;}
+    }
   </style>
 </head>
 <body>
   <canvas id="bgCanvas"></canvas>
   <div class="cursor" id="cursor"></div>
   <div class="cursor-follower" id="cursorFollower"></div>
+
   <nav>
-    <div class="nav-logo">NeuralPrep</div>
+    <a href="index.html" class="nav-logo">NeuralPrep</a>
     <div class="nav-links">
       <a href="#features">Features</a>
       <a href="#how">How It Works</a>
+      <a href="#faq">FAQ</a>
       <a href="dashboard.html">📈 Dashboard</a>
       <a href="login.html">Login</a>
       <button class="theme-toggle" onclick="toggleTheme()">🌓 Theme</button>
     </div>
   </nav>
+
   <section class="hero">
     <div class="hero-badge"><span></span> AI-Powered Study Intelligence</div>
-    <h1><span class="line1">Study Smarter.</span><span class="line2" id="typewriterText">Score Higher.</span></h1>
+    <h1>
+      <span class="line1">Study Smarter.</span>
+      <!-- FIXED: tw-wrap has fixed height via height:1.1em — never causes layout shift -->
+      <span class="tw-wrap"><span id="twText"></span><span class="tw-cursor"></span></span>
+    </h1>
     <p class="hero-sub">An intelligent exam preparation scheduler that analyzes your academic performance and builds a personalized, optimized study roadmap — powered by Machine Learning.</p>
     <div class="hero-actions">
       <a href="planner.html" class="btn-primary">⚡ Generate My Plan</a>
       <a href="login.html" class="btn-secondary">👤 Sign In</a>
     </div>
+    <div class="scroll-hint">Scroll</div>
   </section>
+
   <div class="stats-bar">
-    <div class="stat-item" data-aos="fade-up"><div class="stat-num" data-count="6">0</div><div class="stat-label">Branches Supported</div></div>
-    <div class="stat-item" data-aos="fade-up" data-aos-delay="100"><div class="stat-num" data-count="5">0</div><div class="stat-label">Languages</div></div>
-    <div class="stat-item" data-aos="fade-up" data-aos-delay="200"><div class="stat-num" data-count="8">0</div><div class="stat-label">Achievements</div></div>
-    <div class="stat-item" data-aos="fade-up" data-aos-delay="300"><div class="stat-num" data-count="3">0</div><div class="stat-label">Difficulty Modes</div></div>
+    <div class="stat-item" data-aos="fade-up"><div class="stat-num" data-count="6" data-suffix="+">0</div><div class="stat-label">Branches Supported</div></div>
+    <div class="stat-item" data-aos="fade-up" data-aos-delay="100"><div class="stat-num" data-count="5" data-suffix="+">0</div><div class="stat-label">Languages</div></div>
+    <div class="stat-item" data-aos="fade-up" data-aos-delay="200"><div class="stat-num" data-count="8" data-suffix="+">0</div><div class="stat-label">Achievements</div></div>
+    <div class="stat-item" data-aos="fade-up" data-aos-delay="300"><div class="stat-num" data-count="100" data-suffix="%">0</div><div class="stat-label">Free to Use</div></div>
   </div>
+
   <section class="section" id="features">
     <p class="section-label" data-aos="fade-up">What makes NeuralPrep different</p>
     <h2 class="section-title" data-aos="fade-up">Built for every student,<br/>every branch.</h2>
     <div class="features-grid">
       <div class="feature-card" data-aos="fade-up"><div class="feature-icon">🧠</div><h3>ML-Powered Predictions</h3><p>Linear Regression model trained on real academic data predicts your expected scores with high accuracy.</p></div>
-      <div class="feature-card" data-aos="fade-up" data-aos-delay="100"><div class="feature-icon">🌍</div><h3>Multi-Language Support</h3><p>Use NeuralPrep in Telugu, Hindi, Tamil, Kannada, Malayalam or English — your language, your comfort.</p></div>
-      <div class="feature-card" data-aos="fade-up" data-aos-delay="200"><div class="feature-icon">🏆</div><h3>Badges & Achievements</h3><p>Earn performance badges like Top Performer, All Clear, and Excellence based on your predicted scores.</p></div>
-      <div class="feature-card" data-aos="fade-up" data-aos-delay="300"><div class="feature-icon">📝</div><h3>Quick Notes</h3><p>Jot down important points for each subject directly inside the planner. Notes saved in your session.</p></div>
-      <div class="feature-card" data-aos="fade-up" data-aos-delay="400"><div class="feature-icon">🔔</div><h3>Study Reminders</h3><p>Set browser notifications to remind you when it's time to study. Never miss a session again.</p></div>
-      <div class="feature-card" data-aos="fade-up" data-aos-delay="500"><div class="feature-icon">📅</div><h3>Exam Countdown</h3><p>Enter your exam date and see a live countdown — stay motivated and aware of how much time is left.</p></div>
+      <div class="feature-card" data-aos="fade-up" data-aos-delay="80"><div class="feature-icon">🌍</div><h3>Multi-Language Support</h3><p>Use NeuralPrep in Telugu, Hindi, Tamil, Kannada, Malayalam or English — your language, your comfort.</p></div>
+      <div class="feature-card" data-aos="fade-up" data-aos-delay="160"><div class="feature-icon">🏆</div><h3>Badges & Achievements</h3><p>Earn performance badges like Top Performer, All Clear, and Excellence based on your predicted scores.</p></div>
+      <div class="feature-card" data-aos="fade-up" data-aos-delay="240"><div class="feature-icon">📝</div><h3>Quick Notes Per Subject</h3><p>Jot down important notes for each subject inside the planner. Auto-saved during your session.</p></div>
+      <div class="feature-card" data-aos="fade-up" data-aos-delay="320"><div class="feature-icon">🔔</div><h3>Study Reminders</h3><p>Set browser push notifications to remind you when it's time to study. Never miss a session again.</p></div>
+      <div class="feature-card" data-aos="fade-up" data-aos-delay="400"><div class="feature-icon">📅</div><h3>Exam Countdown Timer</h3><p>Enter your exam date and see a live countdown — stay motivated and aware of time remaining.</p></div>
+      <div class="feature-card" data-aos="fade-up" data-aos-delay="480"><div class="feature-icon">✨</div><h3>AI Topic Suggestions</h3><p>Gemini AI automatically suggests important topics for any subject you add. Edit freely.</p></div>
+      <div class="feature-card" data-aos="fade-up" data-aos-delay="560"><div class="feature-icon">📊</div><h3>Progress Dashboard</h3><p>Radar charts, subject breakdown, badge collection and notes summary all in one dashboard.</p></div>
+      <div class="feature-card" data-aos="fade-up" data-aos-delay="640"><div class="feature-icon">📄</div><h3>PDF Export</h3><p>Download your complete personalized study roadmap as a clean PDF to study offline anytime.</p></div>
     </div>
   </section>
+
+  <section class="how-section" id="how">
+    <div class="steps-wrap">
+      <p class="section-label" data-aos="fade-up">Simple 4-step process</p>
+      <h2 class="section-title" data-aos="fade-up">How NeuralPrep works</h2>
+      <div class="steps-grid">
+        <div class="step" data-aos="fade-up"><div class="step-num-wrap"><span>01</span></div><h3>Choose Your Branch</h3><p>Select from 6 branches. Subjects auto-load as presets that you can customize freely.</p></div>
+        <div class="step" data-aos="fade-up" data-aos-delay="100"><div class="step-num-wrap"><span>02</span></div><h3>Enter Your Marks</h3><p>Use sliders to input written, assignment and attendance scores for each subject.</p></div>
+        <div class="step" data-aos="fade-up" data-aos-delay="200"><div class="step-num-wrap"><span>03</span></div><h3>AI Predicts & Plans</h3><p>ML model predicts scores. AI suggests topics. Smart time allocation builds your roadmap.</p></div>
+        <div class="step" data-aos="fade-up" data-aos-delay="300"><div class="step-num-wrap"><span>04</span></div><h3>Study & Achieve</h3><p>Follow your roadmap, earn badges, track progress on dashboard, download as PDF.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="testimonials-section">
+    <p class="section-label" data-aos="fade-up">What students say</p>
+    <h2 class="section-title" data-aos="fade-up">Loved by students<br/>across branches.</h2>
+    <div class="testimonials-grid">
+      <div class="testimonial-card" data-aos="fade-up">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">NeuralPrep predicted my Maths score very accurately! The AI topic suggestions saved me hours of research. I scored way better than expected.</p>
+        <div class="testimonial-author"><div class="author-avatar" style="background:rgba(108,99,255,0.15)">🎓</div><div><div class="author-name">Ravi Kumar</div><div class="author-branch">CSE — 3rd Year</div></div></div>
+      </div>
+      <div class="testimonial-card" data-aos="fade-up" data-aos-delay="120">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">The multilanguage feature is amazing! I switched to Telugu and it felt so natural. The exam countdown kept me focused every single day.</p>
+        <div class="testimonial-author"><div class="author-avatar" style="background:rgba(0,217,192,0.15)">📡</div><div><div class="author-name">Priya Lakshmi</div><div class="author-branch">ECE — 2nd Year</div></div></div>
+      </div>
+      <div class="testimonial-card" data-aos="fade-up" data-aos-delay="240">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">As a Mechanical student I was worried it wouldn't have my subjects. The hybrid branch system is perfect — I customized everything easily!</p>
+        <div class="testimonial-author"><div class="author-avatar" style="background:rgba(255,107,107,0.15)">⚙️</div><div><div class="author-name">Arjun Reddy</div><div class="author-branch">Mechanical — 4th Year</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="faq-section" id="faq">
+    <div class="faq-wrap">
+      <p class="section-label" data-aos="fade-up">Got questions?</p>
+      <h2 class="section-title" data-aos="fade-up">Frequently Asked<br/>Questions</h2>
+      <div class="faq-item" data-aos="fade-up">
+        <div class="faq-question" onclick="toggleFaq(this)">Is NeuralPrep completely free?<span class="faq-icon">+</span></div>
+        <div class="faq-answer">Yes! NeuralPrep is 100% free. No signup required for guest access. All features including AI topic suggestions, PDF export and dashboard are completely free.</div>
+      </div>
+      <div class="faq-item" data-aos="fade-up">
+        <div class="faq-question" onclick="toggleFaq(this)">How accurate are the score predictions?<span class="faq-icon">+</span></div>
+        <div class="faq-answer">Our Linear Regression model is trained on real academic datasets. It provides reliable estimates based on your mid/assignment/attendance scores. Actual results may vary based on final study effort.</div>
+      </div>
+      <div class="faq-item" data-aos="fade-up">
+        <div class="faq-question" onclick="toggleFaq(this)">Which branches are supported?<span class="faq-icon">+</span></div>
+        <div class="faq-answer">CSE/IT, ECE/EEE, Mechanical, Civil, MBA/MCA and Custom. The Custom option lets any student from any branch add their own subjects freely with AI topic suggestions.</div>
+      </div>
+      <div class="faq-item" data-aos="fade-up">
+        <div class="faq-question" onclick="toggleFaq(this)">How does the AI topic suggestion work?<span class="faq-icon">+</span></div>
+        <div class="faq-answer">When you click "AI Suggest" on any subject, our backend calls the Google Gemini API which generates the 5 most important exam topics for that subject. You can edit, add or remove suggestions.</div>
+      </div>
+      <div class="faq-item" data-aos="fade-up">
+        <div class="faq-question" onclick="toggleFaq(this)">How do study reminders work?<span class="faq-icon">+</span></div>
+        <div class="faq-answer">Study reminders use your browser's built-in notification system. In the planner, click "Set Reminder", allow notifications when prompted by your browser, set your time and message. The reminder fires at your chosen time even when the tab is in background.</div>
+      </div>
+      <div class="faq-item" data-aos="fade-up">
+        <div class="faq-question" onclick="toggleFaq(this)">Is my data saved permanently?<span class="faq-icon">+</span></div>
+        <div class="faq-answer">NeuralPrep uses browser session storage — your data is available during your current browser session. We don't store personal data on servers unless you create an account. You can download your plan as PDF to save it permanently.</div>
+      </div>
+    </div>
+  </section>
+
   <section class="cta-section">
     <div class="cta-glow"></div>
     <h2 data-aos="fade-up">Ready to ace your exams?</h2>
-    <p data-aos="fade-up">Start your personalized study plan in under 2 minutes.</p>
-    <a href="planner.html" class="btn-primary" data-aos="fade-up" style="font-size:1.05rem;padding:1rem 2.8rem;">⚡ Start For Free — No Signup Required</a>
+    <p data-aos="fade-up">Start your personalized study plan in under 2 minutes. No signup needed.</p>
+    <a href="planner.html" class="btn-primary" data-aos="fade-up" style="font-size:1.05rem;padding:1rem 2.8rem;">⚡ Start For Free</a>
   </section>
-  <footer>Built with ❤️ using <strong>Node.js</strong>, <strong>Machine Learning</strong> &amp; <strong>Gemini AI</strong> &nbsp;|&nbsp; NeuralPrep © 2026</footer>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="footer-logo">NeuralPrep</div>
+        <p class="footer-desc">An AI-powered smart exam preparation scheduler built with Machine Learning, Node.js and Google Gemini AI. Free for all students.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Pages</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="planner.html">Planner</a></li>
+          <li><a href="results.html">Results</a></li>
+          <li><a href="dashboard.html">Dashboard</a></li>
+          <li><a href="login.html">Login</a></li>
+        </ul>
+      </div>
+      <div class="footer-links">
+        <h4>Features</h4>
+        <ul>
+          <li><a href="planner.html">ML Predictions</a></li>
+          <li><a href="planner.html">AI Topic Suggest</a></li>
+          <li><a href="dashboard.html">Badges & Awards</a></li>
+          <li><a href="planner.html">Multi-Language</a></li>
+          <li><a href="results.html">PDF Export</a></li>
+        </ul>
+      </div>
+      <div class="footer-links">
+        <h4>Tech Stack</h4>
+        <ul>
+          <li><a href="#">Node.js + Express</a></li>
+          <li><a href="#">Python + scikit-learn</a></li>
+          <li><a href="#">Google Gemini API</a></li>
+          <li><a href="#">Chart.js</a></li>
+          <li><a href="#">jsPDF</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      Built with ❤️ using <strong>Node.js</strong>, <strong>Machine Learning</strong> &amp; <strong>Gemini AI</strong> &nbsp;|&nbsp; NeuralPrep © 2026 &nbsp;|&nbsp; 100% Free
+    </div>
+  </footer>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
   <script>
     AOS.init({duration:700,easing:'ease-out-cubic',once:true});
+
+    // Theme
     function toggleTheme(){const h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'light':'dark';localStorage.setItem('theme',h.dataset.theme);}
     const saved=localStorage.getItem('theme');if(saved)document.documentElement.dataset.theme=saved;
+
+    // Cursor
     const cursor=document.getElementById('cursor'),follower=document.getElementById('cursorFollower');
     let mx=0,my=0,fx=0,fy=0;
     document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cursor.style.transform=`translate(${mx-6}px,${my-6}px)`;});
-    function af(){fx+=(mx-fx)*0.12;fy+=(my-fy)*0.12;follower.style.transform=`translate(${fx-18}px,${fy-18}px)`;requestAnimationFrame(af);}af();
-    const canvas=document.getElementById('bgCanvas'),ctx=canvas.getContext('2d');let particles=[];
+    function af(){fx+=(mx-fx)*0.1;fy+=(my-fy)*0.1;follower.style.transform=`translate(${fx-18}px,${fy-18}px)`;requestAnimationFrame(af);}af();
+    document.querySelectorAll('a,button').forEach(el=>{
+      el.addEventListener('mouseenter',()=>{follower.style.width='55px';follower.style.height='55px';follower.style.borderColor='var(--accent2)';});
+      el.addEventListener('mouseleave',()=>{follower.style.width='36px';follower.style.height='36px';follower.style.borderColor='var(--accent)';});
+    });
+
+    // Particles
+    const canvas=document.getElementById('bgCanvas'),ctx=canvas.getContext('2d');
     function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}resize();window.addEventListener('resize',resize);
-    for(let i=0;i<80;i++)particles.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,vx:(Math.random()-0.5)*0.4,vy:(Math.random()-0.5)*0.4,r:Math.random()*1.5+0.5,a:Math.random()*0.5+0.1});
-    function draw(){ctx.clearRect(0,0,canvas.width,canvas.height);particles.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(108,99,255,${p.a})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>canvas.width)p.vx*=-1;if(p.y<0||p.y>canvas.height)p.vy*=-1;});for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.strokeStyle=`rgba(108,99,255,${0.12*(1-d/120)})`;ctx.stroke();}}requestAnimationFrame(draw);}draw();
-    document.querySelectorAll('.stat-num').forEach(el=>{const t=+el.dataset.count;let c=0,s=t/60;const ti=setInterval(()=>{c=Math.min(c+s,t);el.textContent=Math.round(c)+'+';if(c>=t)clearInterval(ti);},25);});
-    const words=["Score Higher.","Study Smarter.","Beat The Exam.","Own Your Results."];let wi=0,ci=0,del=false;const el=document.getElementById('typewriterText');
-    function tw(){const w=words[wi];if(!del){el.textContent=w.substring(0,ci+1);el.classList.add('typewriter');ci++;if(ci===w.length){del=true;setTimeout(tw,1800);return;}}else{el.textContent=w.substring(0,ci-1);ci--;if(ci===0){del=false;wi=(wi+1)%words.length;}}setTimeout(tw,del?60:100);}tw();
+    const particles=[];
+    for(let i=0;i<70;i++)particles.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,vx:(Math.random()-0.5)*0.35,vy:(Math.random()-0.5)*0.35,r:Math.random()*1.4+0.4,a:Math.random()*0.4+0.1});
+    function draw(){ctx.clearRect(0,0,canvas.width,canvas.height);particles.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(108,99,255,${p.a})`;ctx.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>canvas.width)p.vx*=-1;if(p.y<0||p.y>canvas.height)p.vy*=-1;});for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<130){ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.strokeStyle=`rgba(108,99,255,${0.1*(1-d/130)})`;ctx.stroke();}}requestAnimationFrame(draw);}draw();
+
+    // Stat counters
+    document.querySelectorAll('.stat-num').forEach(el=>{
+      const target=+el.dataset.count, suffix=el.dataset.suffix||'+';
+      let c=0;const step=target/60;
+      const ti=setInterval(()=>{c=Math.min(c+step,target);el.textContent=Math.round(c)+suffix;if(c>=target)clearInterval(ti);},22);
+    });
+
+    // ===== TYPEWRITER FIX =====
+    // Uses same-length words to minimise width change.
+    // Container has height:1.1em so height never changes = NO layout shift.
+    const words=["Score Higher.","Beat The Exam.","Ace Every Test.","Own Your Results."];
+    let wi=0,ci=0,deleting=false;
+    const twEl=document.getElementById('twText');
+
+    function typewrite(){
+      const word=words[wi];
+      if(!deleting){
+        twEl.textContent=word.substring(0,ci+1);
+        ci++;
+        if(ci===word.length){deleting=true;setTimeout(typewrite,2200);return;}
+      } else {
+        twEl.textContent=word.substring(0,ci-1);
+        ci--;
+        if(ci===0){deleting=false;wi=(wi+1)%words.length;}
+      }
+      setTimeout(typewrite,deleting?50:90);
+    }
+    typewrite();
+
+    // FAQ accordion
+    function toggleFaq(el){
+      const item=el.parentElement;
+      const isOpen=item.classList.contains('open');
+      document.querySelectorAll('.faq-item').forEach(i=>i.classList.remove('open'));
+      if(!isOpen)item.classList.add('open');
+    }
   </script>
 </body>
 </html>
