@@ -729,7 +729,10 @@
       if(!selectedBranch) return showToast('⚠️ Please select your branch first!');
       if(subjects.length===0) return showToast('⚠️ Please add at least one subject!');
       const btn = document.getElementById('generateBtn');
-      btn.disabled = true; btn.textContent = '⚙️ Analyzing...';
+      btn.disabled = true;
+      const msgs = ['⚙️ Analyzing marks...','🧠 Running ML model...','📊 Building roadmap...','✨ Almost ready...'];
+      let mi = 0;
+      const loadInterval = setInterval(() => { btn.textContent = msgs[mi++ % msgs.length]; }, 700);
       const payload = {
         examMode, diffLevel,
         startTime: document.getElementById('startTime').value,
@@ -737,35 +740,20 @@
         examDate: document.getElementById('examDate').value,
         subjects: subjects.map(s => ({ name:s.name, color:s.color, topics:s.topics, notes:s.notes, written:s.written, assign:s.assign, attend:s.attend }))
       };
-      try {
-        // Add timeout for mobile — if server slow, use JS prediction
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 6000);
-        try {
-          const res = await fetch('/api/predict', {
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify(payload),
-            signal: controller.signal
-          });
-          clearTimeout(timeoutId);
-          const data = await res.json();
-          clearInterval(loadingInterval);
-          sessionStorage.setItem('planResult', JSON.stringify({...data, config:payload}));
-          window.location.href = 'results.html';
-        } catch(fetchErr) {
-          clearTimeout(timeoutId);
-          clearInterval(loadingInterval);
-          // Instant JS fallback — works offline too
-          const result = clientPredict(payload);
-          sessionStorage.setItem('planResult', JSON.stringify({...result, config:payload}));
-          window.location.href = 'results.html';
-        }
-      } catch {
-        clearInterval(loadingInterval);
-        const result = clientPredict(payload);
+      function finish(result) {
+        clearInterval(loadInterval);
         sessionStorage.setItem('planResult', JSON.stringify({...result, config:payload}));
         window.location.href = 'results.html';
+      }
+      try {
+        const res = await fetch('/api/predict', {
+          method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)
+        });
+        if(!res.ok) throw new Error('Server error');
+        const data = await res.json();
+        finish(data);
+      } catch(err) {
+        finish(clientPredict(payload));
       }
     }
 
