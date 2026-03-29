@@ -6,91 +6,185 @@
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
-    :root{--bg:#05060f;--bg2:#0b0d1e;--surface:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);--accent:#6c63ff;--accent2:#00d9c0;--accent3:#ff6b6b;--success:#00e676;--warning:#ffa000;--danger:#ff1744;--text:#e8e9f3;--muted:#6b6d8a;--glow:rgba(108,99,255,0.35);}
-    [data-theme="light"]{--bg:#f0f1fa;--bg2:#e4e6f7;--surface:rgba(0,0,0,0.04);--border:rgba(0,0,0,0.08);--text:#0d0e1f;--muted:#7b7d9a;--glow:rgba(108,99,255,0.2);}
+    :root{
+      --bg:#05060f;--bg2:#0b0d1e;
+      --surface:rgba(255,255,255,0.04);--surface2:rgba(255,255,255,0.07);
+      --border:rgba(255,255,255,0.08);
+      --accent:#6c63ff;--accent2:#00d9c0;--accent3:#ff6b6b;
+      --success:#00e676;--warning:#ffa000;--danger:#ff1744;
+      --text:#e8e9f3;--muted:#6b6d8a;--glow:rgba(108,99,255,0.35);
+    }
+    [data-theme="light"]{--bg:#f0f1fa;--bg2:#e4e6f7;--surface:rgba(0,0,0,0.04);--surface2:rgba(0,0,0,0.07);--border:rgba(0,0,0,0.08);--text:#0d0e1f;--muted:#7b7d9a;--glow:rgba(108,99,255,0.2);}
     *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
     body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
-    nav{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 3rem;background:rgba(5,6,15,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+    nav{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 3rem;background:rgba(5,6,15,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:0.5rem;}
     [data-theme="light"] nav{background:rgba(240,241,250,0.9);}
     .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none;}
-    .nav-right{display:flex;align-items:center;gap:1rem;}
-    .nav-right a{color:var(--muted);text-decoration:none;font-size:0.88rem;transition:color 0.2s;}
+    .nav-right{display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;}
+    .nav-right a{color:var(--muted);text-decoration:none;font-size:0.85rem;transition:color 0.2s;}
     .nav-right a:hover{color:var(--text);}
-    .theme-btn{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.9rem;border-radius:20px;cursor:pointer;font-size:0.8rem;font-family:'DM Sans',sans-serif;transition:all 0.2s;}
+    .theme-btn{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.8rem;border-radius:20px;cursor:pointer;font-size:0.78rem;font-family:'DM Sans',sans-serif;transition:all 0.2s;}
     .theme-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
-    .page-wrap{max-width:1000px;margin:0 auto;padding:3rem 2rem 5rem;}
-    .page-header{margin-bottom:2.5rem;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;}
-    .page-header h1{font-family:'Syne',sans-serif;font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;letter-spacing:-0.5px;}
-    .page-header p{color:var(--muted);font-size:0.9rem;margin-top:0.3rem;}
-    .header-actions{display:flex;gap:0.75rem;flex-wrap:wrap;}
-    .btn-pdf{display:inline-flex;align-items:center;gap:0.5rem;background:linear-gradient(135deg,var(--accent2),#00bfa5);color:#000;padding:0.75rem 1.6rem;border-radius:12px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;transition:all 0.2s;}
-    .btn-pdf:hover{transform:translateY(-2px);box-shadow:0 6px 25px rgba(0,217,192,0.35);}
-    .btn-dashboard{display:inline-flex;align-items:center;gap:0.5rem;background:linear-gradient(135deg,var(--accent),#9b59b6);color:#fff;padding:0.75rem 1.6rem;border-radius:12px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;transition:all 0.2s;text-decoration:none;}
-    .btn-dashboard:hover{transform:translateY(-2px);box-shadow:0 6px 25px var(--glow);}
-    .alert-banner{border-radius:16px;padding:1.2rem 1.5rem;margin-bottom:2rem;display:flex;align-items:center;gap:1rem;font-weight:600;}
-    .alert-banner.danger{background:rgba(255,23,68,0.08);border:1px solid rgba(255,23,68,0.25);color:var(--danger);animation:shake 0.5s;}
-    @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+    /* Color picker btn */
+    .color-picker-btn{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.8rem;border-radius:20px;cursor:pointer;font-size:0.78rem;font-family:'DM Sans',sans-serif;transition:all 0.2s;display:flex;align-items:center;gap:0.4rem;}
+    .color-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);}
+
+    .page-wrap{max-width:1000px;margin:0 auto;padding:2.5rem 2rem 5rem;}
+    .page-header{margin-bottom:2rem;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;}
+    .page-header h1{font-family:'Syne',sans-serif;font-size:clamp(1.5rem,3vw,2rem);font-weight:800;letter-spacing:-0.5px;}
+    .page-header p{color:var(--muted);font-size:0.88rem;margin-top:0.3rem;}
+    .header-actions{display:flex;gap:0.6rem;flex-wrap:wrap;}
+
+    /* Action buttons */
+    .btn-action{display:inline-flex;align-items:center;gap:0.4rem;padding:0.65rem 1.2rem;border-radius:10px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;transition:all 0.2s;}
+    .btn-pdf{background:linear-gradient(135deg,var(--accent2),#00bfa5);color:#000;}
+    .btn-pdf:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,217,192,0.3);}
+    .btn-dashboard{background:linear-gradient(135deg,var(--accent),#9b59b6);color:#fff;text-decoration:none;}
+    .btn-dashboard:hover{transform:translateY(-2px);box-shadow:0 6px 20px var(--glow);}
+    .btn-share{background:rgba(0,217,192,0.12);border:1px solid rgba(0,217,192,0.3);color:var(--accent2);}
+    .btn-share:hover{background:rgba(0,217,192,0.2);}
+    .btn-tts{background:rgba(108,99,255,0.12);border:1px solid rgba(108,99,255,0.3);color:var(--accent);}
+    .btn-tts:hover{background:rgba(108,99,255,0.2);}
+    .btn-tts.speaking{background:rgba(255,107,107,0.15);border-color:rgba(255,107,107,0.4);color:var(--accent3);animation:pulse 1s infinite;}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.7}}
+    .btn-compare{background:rgba(255,160,0,0.12);border:1px solid rgba(255,160,0,0.3);color:#ffa000;}
+    .btn-compare:hover{background:rgba(255,160,0,0.2);}
+    .btn-whatsapp{background:rgba(37,211,102,0.12);border:1px solid rgba(37,211,102,0.3);color:#25d366;}
+    .btn-whatsapp:hover{background:rgba(37,211,102,0.2);}
+
+    /* Alert */
+    .alert-banner{border-radius:14px;padding:1rem 1.3rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;font-weight:600;}
+    .alert-banner.danger{background:rgba(255,23,68,0.08);border:1px solid rgba(255,23,68,0.25);color:var(--danger);}
     .alert-banner.success{background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.25);color:var(--success);}
-    .alert-subjects{font-size:0.85rem;opacity:0.8;font-weight:400;margin-top:0.2rem;}
+    .alert-subjects{font-size:0.82rem;opacity:0.8;font-weight:400;margin-top:0.2rem;}
 
-    /* Motivational quote on results */
-    .result-quote{background:linear-gradient(135deg,rgba(108,99,255,0.08),rgba(0,217,192,0.08));border:1px solid rgba(108,99,255,0.15);border-radius:14px;padding:1rem 1.5rem;margin-bottom:2rem;font-size:0.88rem;color:var(--muted);font-style:italic;text-align:center;}
-    .result-quote strong{color:var(--accent2);font-style:normal;}
+    /* Quote */
+    .result-quote{background:linear-gradient(135deg,rgba(108,99,255,0.08),rgba(0,217,192,0.08));border:1px solid rgba(108,99,255,0.15);border-radius:12px;padding:0.9rem 1.3rem;margin-bottom:1.5rem;font-size:0.87rem;color:var(--muted);font-style:italic;text-align:center;}
 
-    .scores-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem;margin-bottom:2rem;}
-    .score-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.3rem;text-align:center;transition:all 0.3s;position:relative;overflow:hidden;}
+    /* Scores */
+    .scores-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;margin-bottom:1.5rem;}
+    .score-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.2rem;text-align:center;transition:all 0.3s;position:relative;overflow:hidden;}
     .score-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
     .score-card.critical::before{background:var(--danger);}
     .score-card.average::before{background:var(--warning);}
     .score-card.excellent::before{background:var(--success);}
-    .score-card:hover{transform:translateY(-5px);border-color:rgba(108,99,255,0.3);}
+    .score-card:hover{transform:translateY(-4px);}
     .score-card.critical{animation:vibrate 0.4s infinite;}
     @keyframes vibrate{0%,100%{transform:translate(0)}25%{transform:translate(1px,1px)}75%{transform:translate(-1px,-1px)}}
-    .score-card.critical:hover{animation:none;transform:translateY(-5px);}
-    .score-dot{width:10px;height:10px;border-radius:50%;margin:0 auto 0.6rem;}
-    .score-subject{font-family:'Syne',sans-serif;font-size:0.85rem;font-weight:700;margin-bottom:0.4rem;}
-    .score-num{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;line-height:1;}
-    .score-max{font-size:0.78rem;color:var(--muted);margin-top:0.2rem;}
-    .score-badge{display:inline-block;padding:0.2rem 0.6rem;border-radius:6px;font-size:0.7rem;font-weight:600;margin-top:0.5rem;}
+    .score-card.critical:hover{animation:none;transform:translateY(-4px);}
+    .score-dot{width:8px;height:8px;border-radius:50%;margin:0 auto 0.5rem;}
+    .score-subject{font-family:'Syne',sans-serif;font-size:0.82rem;font-weight:700;margin-bottom:0.3rem;}
+    .score-num{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;line-height:1;}
+    .score-max{font-size:0.72rem;color:var(--muted);margin-top:0.15rem;}
+    .score-badge{display:inline-block;padding:0.15rem 0.5rem;border-radius:5px;font-size:0.65rem;font-weight:600;margin-top:0.4rem;}
     .critical .score-badge{background:rgba(255,23,68,0.15);color:var(--danger);}
     .average .score-badge{background:rgba(255,160,0,0.15);color:var(--warning);}
     .excellent .score-badge{background:rgba(0,230,118,0.15);color:var(--success);}
-    .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2rem;margin-bottom:2rem;}
-    .chart-title{font-family:'Syne',sans-serif;font-weight:700;margin-bottom:1.5rem;font-size:1rem;}
-    .chart-wrap{position:relative;height:280px;}
-    .roadmap-section{margin-bottom:2rem;}
-    .section-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;margin-bottom:1.2rem;display:flex;align-items:center;gap:0.5rem;}
-    .time-config{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem;}
-    .time-config select{padding:0.6rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.85rem;cursor:pointer;outline:none;appearance:none;}
+
+    /* Chart */
+    .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:1.8rem;margin-bottom:1.5rem;}
+    .chart-title{font-family:'Syne',sans-serif;font-weight:700;margin-bottom:1.2rem;font-size:0.95rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;}
+    .chart-wrap{position:relative;height:260px;}
+
+    /* ===== COMPARE TABLE ===== */
+    .compare-section{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:1.8rem;margin-bottom:1.5rem;display:none;}
+    .compare-section.show{display:block;}
+    .compare-table{width:100%;border-collapse:collapse;margin-top:1rem;}
+    .compare-table th{text-align:left;padding:0.7rem 1rem;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);border-bottom:1px solid var(--border);font-weight:600;}
+    .compare-table td{padding:0.75rem 1rem;font-size:0.88rem;border-bottom:1px solid var(--border);}
+    .compare-table tr:last-child td{border-bottom:none;}
+    .compare-table tr:hover td{background:var(--surface2);}
+    .compare-bar{height:6px;border-radius:3px;margin-top:4px;}
+    .rank-badge{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:0.72rem;font-weight:700;}
+    .rank-1{background:rgba(255,215,0,0.2);color:gold;}
+    .rank-2{background:rgba(192,192,192,0.2);color:silver;}
+    .rank-3{background:rgba(205,127,50,0.2);color:#cd7f32;}
+
+    /* Roadmap */
+    .section-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;}
+    .time-config{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.2rem;}
+    .time-config select{padding:0.55rem 0.9rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.83rem;cursor:pointer;outline:none;appearance:none;}
     .time-config select:focus{border-color:var(--accent);}
     .time-config select option{background:var(--bg2);}
-    .roadmap-list{display:flex;flex-direction:column;gap:1rem;}
-    .roadmap-item{border-left:4px solid;border-radius:0 16px 16px 0;padding:1.3rem 1.5rem;background:var(--surface);border-top:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border);transition:all 0.3s;opacity:0;transform:translateX(-20px);animation:slideIn 0.4s forwards;}
-    .roadmap-item:hover{transform:translateX(4px) !important;box-shadow:0 8px 30px rgba(0,0,0,0.2);}
+    .roadmap-list{display:flex;flex-direction:column;gap:0.9rem;}
+    .roadmap-item{border-left:4px solid;border-radius:0 14px 14px 0;padding:1.1rem 1.3rem;background:var(--surface);border-top:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border);transition:all 0.3s;opacity:0;transform:translateX(-20px);animation:slideIn 0.4s forwards;}
+    .roadmap-item:hover{transform:translateX(4px) !important;}
     @keyframes slideIn{to{opacity:1;transform:translateX(0)}}
     .roadmap-item.critical{border-left-color:var(--danger);animation:slideIn 0.4s forwards,neonPulse 2s infinite 0.5s;}
-    @keyframes neonPulse{0%,100%{box-shadow:0 0 0 rgba(255,23,68,0)}50%{box-shadow:0 0 20px rgba(255,23,68,0.2),-4px 0 15px rgba(255,23,68,0.3)}}
+    @keyframes neonPulse{0%,100%{box-shadow:none}50%{box-shadow:-4px 0 15px rgba(255,23,68,0.25)}}
     .roadmap-item.average{border-left-color:var(--warning);}
     .roadmap-item.excellent{border-left-color:var(--success);}
-    .roadmap-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.6rem;}
-    .roadmap-subject{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;}
-    .roadmap-time{font-size:0.8rem;padding:0.3rem 0.8rem;border-radius:20px;background:rgba(255,255,255,0.07);color:var(--muted);font-weight:600;}
-    .roadmap-topics{color:var(--muted);font-size:0.84rem;margin-bottom:0.7rem;}
+    .roadmap-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.4rem;margin-bottom:0.5rem;}
+    .roadmap-subject{font-family:'Syne',sans-serif;font-weight:700;font-size:0.95rem;}
+    .roadmap-time{font-size:0.78rem;padding:0.25rem 0.7rem;border-radius:20px;background:rgba(255,255,255,0.06);color:var(--muted);font-weight:600;}
+    .roadmap-topics{color:var(--muted);font-size:0.82rem;margin-bottom:0.6rem;}
     .roadmap-footer{display:flex;justify-content:space-between;align-items:center;}
-    .roadmap-duration{font-size:0.82rem;color:var(--muted);}
-    .roadmap-score{font-size:0.85rem;font-weight:700;}
+    .roadmap-duration{font-size:0.8rem;color:var(--muted);}
+    .roadmap-score{font-size:0.83rem;font-weight:700;}
     .roadmap-item.critical .roadmap-score{color:var(--danger);}
     .roadmap-item.average .roadmap-score{color:var(--warning);}
     .roadmap-item.excellent .roadmap-score{color:var(--success);}
-    .btn-back{display:inline-flex;align-items:center;gap:0.5rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.75rem 1.5rem;border-radius:12px;text-decoration:none;font-size:0.9rem;font-weight:500;transition:all 0.2s;cursor:pointer;}
+
+    /* ===== SHARE CARD ===== */
+    .share-card-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);z-index:9999;display:none;align-items:center;justify-content:center;padding:1rem;}
+    .share-card-overlay.show{display:flex;}
+    .share-card-box{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:2rem;max-width:500px;width:100%;}
+    .share-card-box h3{font-family:'Syne',sans-serif;font-weight:700;margin-bottom:1.5rem;}
+    #shareCard{background:linear-gradient(135deg,#0b0d1e,#12103a);border-radius:16px;padding:1.8rem;position:relative;overflow:hidden;}
+    #shareCard::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(ellipse at 40% 40%,rgba(108,99,255,0.15),transparent 60%);pointer-events:none;}
+    .sc-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;background:linear-gradient(135deg,#6c63ff,#00d9c0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:1rem;}
+    .sc-title{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:#e8e9f3;margin-bottom:0.4rem;}
+    .sc-subtitle{font-size:0.78rem;color:#6b6d8a;margin-bottom:1.2rem;}
+    .sc-scores{display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem;}
+    .sc-score-item{background:rgba(255,255,255,0.06);border-radius:8px;padding:0.4rem 0.7rem;font-size:0.78rem;color:#e8e9f3;}
+    .sc-score-item span{font-family:'Syne',sans-serif;font-weight:700;}
+    .sc-footer{font-size:0.72rem;color:#6b6d8a;border-top:1px solid rgba(255,255,255,0.08);padding-top:0.8rem;margin-top:0.5rem;}
+    .sc-actions{display:flex;gap:0.75rem;margin-top:1.2rem;flex-wrap:wrap;}
+    .btn-download-card{flex:1;padding:0.7rem;background:linear-gradient(135deg,var(--accent),#9b59b6);color:#fff;border:none;border-radius:10px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;transition:all 0.2s;}
+    .btn-download-card:hover{transform:translateY(-2px);}
+    .btn-close-card{padding:0.7rem 1.2rem;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:10px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.85rem;transition:all 0.2s;}
+
+    /* Color picker modal */
+    .color-modal{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:9999;display:none;align-items:center;justify-content:center;}
+    .color-modal.show{display:flex;}
+    .color-modal-box{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:2rem;max-width:380px;width:90%;}
+    .color-modal-box h3{font-family:'Syne',sans-serif;font-weight:700;margin-bottom:1.5rem;}
+    .color-presets{display:grid;grid-template-columns:repeat(5,1fr);gap:0.75rem;margin-bottom:1.5rem;}
+    .color-preset{width:100%;aspect-ratio:1;border-radius:12px;cursor:pointer;border:3px solid transparent;transition:all 0.2s;}
+    .color-preset:hover,.color-preset.active{border-color:#fff;transform:scale(1.1);}
+    .color-custom-row{display:flex;align-items:center;gap:0.75rem;}
+    .color-custom-row label{font-size:0.85rem;color:var(--muted);}
+    .color-custom-row input[type="color"]{width:48px;height:38px;border:1px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;padding:2px;}
+    .btn-close-color{width:100%;margin-top:1.2rem;padding:0.75rem;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:10px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.88rem;transition:all 0.2s;}
+    .btn-close-color:hover{border-color:var(--accent);color:var(--accent);}
+
+    /* Notification banner */
+    .notif-banner{background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.2);border-radius:12px;padding:0.8rem 1.2rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+    .notif-left{display:flex;align-items:center;gap:0.6rem;font-size:0.85rem;}
+    .btn-allow-notif{background:var(--accent);color:#fff;border:none;padding:0.4rem 1rem;border-radius:8px;font-size:0.8rem;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;transition:all 0.2s;}
+    .btn-allow-notif:hover{background:#5a52e0;}
+    .btn-dismiss-notif{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;padding:0.2rem;}
+
+    /* TTS progress */
+    .tts-bar{background:rgba(108,99,255,0.1);border:1px solid rgba(108,99,255,0.2);border-radius:10px;padding:0.7rem 1rem;margin-bottom:1rem;display:none;align-items:center;gap:0.75rem;}
+    .tts-bar.show{display:flex;}
+    .tts-subject{font-size:0.85rem;font-weight:600;color:var(--accent);}
+    .tts-progress{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+    .tts-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;transition:width 0.3s;}
+
+    .btn-back{display:inline-flex;align-items:center;gap:0.5rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.7rem 1.3rem;border-radius:10px;text-decoration:none;font-size:0.88rem;font-weight:500;transition:all 0.2s;}
     .btn-back:hover{border-color:var(--accent);color:var(--accent);}
+
     .loading-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:1.5rem;}
-    .loader-ring{width:60px;height:60px;border-radius:50%;border:3px solid var(--border);border-top-color:var(--accent);animation:spin 0.8s linear infinite;}
+    .loader-ring{width:56px;height:56px;border-radius:50%;border:3px solid var(--border);border-top-color:var(--accent);animation:spin 0.8s linear infinite;}
     @keyframes spin{to{transform:rotate(360deg)}}
-    .loader-text{font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;}
-    .loader-sub{color:var(--muted);font-size:0.85rem;}
-    @media(max-width:600px){.page-header{flex-direction:column;}nav{padding:1rem 1.2rem;}.page-wrap{padding:2rem 1rem 4rem;}}
+    .loader-text{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;}
+    .loader-sub{color:var(--muted);font-size:0.82rem;}
+
+    @media(max-width:600px){nav{padding:1rem;}.page-wrap{padding:1.5rem 1rem 4rem;}.header-actions{flex-wrap:wrap;}}
   </style>
 </head>
 <body>
@@ -99,95 +193,360 @@
     <div class="loader-text">Analyzing your data...</div>
     <div class="loader-sub">ML model is calculating predictions</div>
   </div>
+
   <nav>
     <a href="index.html" class="nav-logo">NeuralPrep</a>
     <div class="nav-right">
       <a href="planner.html">← Planner</a>
       <a href="dashboard.html">📈 Dashboard</a>
-      <button class="theme-btn" onclick="toggleTheme()">🌓 Theme</button>
+      <button class="color-picker-btn" onclick="openColorPicker()">🎨 <span class="color-dot"></span></button>
+      <button class="theme-btn" onclick="toggleTheme()">🌓</button>
     </div>
   </nav>
-  <div class="page-wrap" id="mainContent" style="display:none">
-    <div class="page-header">
-      <div><h1>📊 Your Study Plan</h1><p id="planSubtitle">Personalized roadmap based on your marks</p></div>
-      <div class="header-actions">
-        <a href="dashboard.html" class="btn-dashboard">📈 View Dashboard</a>
-        <button class="btn-pdf" onclick="downloadPDF()">📄 Download PDF</button>
+
+  <!-- Color Picker Modal -->
+  <div class="color-modal" id="colorModal">
+    <div class="color-modal-box">
+      <h3>🎨 Choose Accent Color</h3>
+      <div class="color-presets" id="colorPresets"></div>
+      <div class="color-custom-row">
+        <label>Custom color:</label>
+        <input type="color" id="customColorPicker" value="#6c63ff" oninput="applyAccentColor(this.value)"/>
+      </div>
+      <button class="btn-close-color" onclick="closeColorPicker()">Done ✓</button>
+    </div>
+  </div>
+
+  <!-- Share Card Overlay -->
+  <div class="share-card-overlay" id="shareOverlay">
+    <div class="share-card-box">
+      <h3>📸 Share Your Results</h3>
+      <div id="shareCard">
+        <div class="sc-logo">NeuralPrep</div>
+        <div class="sc-title" id="scTitle">My Study Plan Results</div>
+        <div class="sc-subtitle" id="scSubtitle">Semester Exam · Normal Mode</div>
+        <div class="sc-scores" id="scScores"></div>
+        <div class="sc-footer">Generated by NeuralPrep — Smart Exam Scheduler · neuralprep.onrender.com</div>
+      </div>
+      <div class="sc-actions">
+        <button class="btn-download-card" onclick="downloadShareCard()">⬇️ Download Image</button>
+        <button class="btn-close-card" onclick="closeShareCard()">Close</button>
       </div>
     </div>
+  </div>
+
+  <div class="page-wrap" id="mainContent" style="display:none">
+    <div class="page-header">
+      <div>
+        <h1>📊 Your Study Plan</h1>
+        <p id="planSubtitle">Personalized roadmap based on your marks</p>
+      </div>
+      <div class="header-actions">
+        <a href="dashboard.html" class="btn-action btn-dashboard">📈 Dashboard</a>
+        <button class="btn-action btn-compare" onclick="toggleCompare()">📊 Compare</button>
+        <button class="btn-action btn-tts" id="ttsBtn" onclick="toggleTTS()">🔊 Read Aloud</button>
+        <button class="btn-action btn-share" onclick="openShareCard()">📸 Share</button>
+        <button class="btn-action btn-whatsapp" onclick="shareWhatsApp()">💬 WhatsApp</button>
+        <button class="btn-action btn-pdf" onclick="downloadPDF()">📄 PDF</button>
+      </div>
+    </div>
+
+    <!-- Notification Banner -->
+    <div class="notif-banner" id="notifBanner">
+      <div class="notif-left">🔔 <span>Enable notifications to get study reminders and exam alerts!</span></div>
+      <div style="display:flex;gap:0.5rem;align-items:center;">
+        <button class="btn-allow-notif" onclick="enableNotifications()">Allow</button>
+        <button class="btn-dismiss-notif" onclick="dismissNotifBanner()">✕</button>
+      </div>
+    </div>
+
+    <!-- TTS Progress Bar -->
+    <div class="tts-bar" id="ttsBar">
+      <span>🔊</span>
+      <div style="flex:1">
+        <div class="tts-subject" id="ttsCurrentSubject">Reading roadmap...</div>
+        <div class="tts-progress"><div class="tts-progress-fill" id="ttsProgressFill" style="width:0%"></div></div>
+      </div>
+      <button onclick="stopTTS()" style="background:none;border:none;color:var(--accent3);cursor:pointer;font-size:1.1rem;">⏹</button>
+    </div>
+
     <div id="alertBanner" class="alert-banner"></div>
     <div class="result-quote" id="resultQuote"></div>
+
     <div class="scores-grid" id="scoresGrid"></div>
-    <div class="chart-card"><div class="chart-title">📈 Predicted Score Overview</div><div class="chart-wrap"><canvas id="scoreChart"></canvas></div></div>
-    <div class="roadmap-section">
+
+    <!-- Compare Table -->
+    <div class="compare-section" id="compareSection">
+      <div class="chart-title">📊 Subject Comparison</div>
+      <table class="compare-table" id="compareTable">
+        <thead><tr><th>Rank</th><th>Subject</th><th>Score</th><th>Performance</th><th>Status</th></tr></thead>
+        <tbody id="compareBody"></tbody>
+      </table>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">
+        <span>📈 Predicted Score Overview</span>
+        <div style="display:flex;gap:0.5rem;">
+          <button onclick="switchChart('bar')" id="btnBar" style="background:var(--accent);color:#fff;border:none;padding:0.3rem 0.7rem;border-radius:6px;cursor:pointer;font-size:0.75rem;transition:all 0.2s;">Bar</button>
+          <button onclick="switchChart('radar')" id="btnRadar" style="background:var(--surface);border:1px solid var(--border);color:var(--muted);padding:0.3rem 0.7rem;border-radius:6px;cursor:pointer;font-size:0.75rem;transition:all 0.2s;">Radar</button>
+          <button onclick="switchChart('doughnut')" id="btnDoughnut" style="background:var(--surface);border:1px solid var(--border);color:var(--muted);padding:0.3rem 0.7rem;border-radius:6px;cursor:pointer;font-size:0.75rem;transition:all 0.2s;">Pie</button>
+        </div>
+      </div>
+      <div class="chart-wrap"><canvas id="scoreChart"></canvas></div>
+    </div>
+
+    <div class="roadmap-section" style="margin-bottom:1.5rem;">
       <div class="section-title">📅 Study Roadmap</div>
       <div class="time-config">
-        <div><label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;">Start Time</label><select id="startTime" onchange="rebuildRoadmap()"></select></div>
-        <div><label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px;">End Time</label><select id="endTime" onchange="rebuildRoadmap()"></select></div>
+        <div><label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:3px;">Start Time</label><select id="startTime" onchange="rebuildRoadmap()"></select></div>
+        <div><label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:3px;">End Time</label><select id="endTime" onchange="rebuildRoadmap()"></select></div>
       </div>
       <div class="roadmap-list" id="roadmapList"></div>
     </div>
+
     <a href="planner.html" class="btn-back">← Edit My Plan</a>
   </div>
+
   <script>
+    // ===== THEME =====
     function toggleTheme(){const h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'light':'dark';localStorage.setItem('theme',h.dataset.theme);}
     const savedTheme=localStorage.getItem('theme');if(savedTheme)document.documentElement.dataset.theme=savedTheme;
-    let planData=null,chartInstance=null;
 
-    const resultQuotes=[
-      {critical:"Don't panic — every expert was once a beginner. Focus on these subjects now! 💪",average:"You're on the right track. Push a little harder and you'll excel! 🔥",excellent:"Outstanding! Your hard work is paying off. Keep this momentum! 🌟"}
-    ];
+    // ===== ACCENT COLOR PICKER =====
+    const colorPresets=['#6c63ff','#00d9c0','#ff6b6b','#ffa000','#e91e63','#00bcd4','#4caf50','#ff5722','#9c27b0','#2196f3'];
+    function openColorPicker(){
+      const grid=document.getElementById('colorPresets');
+      grid.innerHTML='';
+      const current=localStorage.getItem('accentColor')||'#6c63ff';
+      colorPresets.forEach(c=>{
+        const div=document.createElement('div');
+        div.className='color-preset'+(c===current?' active':'');
+        div.style.background=c;
+        div.onclick=()=>{applyAccentColor(c);grid.querySelectorAll('.color-preset').forEach(p=>p.classList.remove('active'));div.classList.add('active');};
+        grid.appendChild(div);
+      });
+      document.getElementById('colorModal').classList.add('show');
+    }
+    function closeColorPicker(){document.getElementById('colorModal').classList.remove('show');}
+    function applyAccentColor(color){
+      document.documentElement.style.setProperty('--accent',color);
+      document.querySelector('.color-dot').style.background=color;
+      localStorage.setItem('accentColor',color);
+    }
+    const savedAccent=localStorage.getItem('accentColor');
+    if(savedAccent){applyAccentColor(savedAccent);if(document.getElementById('customColorPicker'))document.getElementById('customColorPicker').value=savedAccent;}
 
-    function generateTimeSlots(){const slots=[];for(let h=0;h<24;h++)for(let m of[0,30]){const d=new Date(2000,0,1,h,m);slots.push(d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true}));}return slots;}
-    const slots=generateTimeSlots();
-    ['startTime','endTime'].forEach(id=>{const sel=document.getElementById(id);slots.forEach(s=>sel.add(new Option(s,s)));});
+    // ===== NOTIFICATIONS =====
+    function enableNotifications(){
+      Notification.requestPermission().then(perm=>{
+        if(perm==='granted'){
+          new Notification('NeuralPrep 📚',{body:'Notifications enabled! We will remind you to study.'});
+          localStorage.setItem('notifEnabled','true');
+          document.getElementById('notifBanner').style.display='none';
+          // Schedule a reminder 1 hour from now as demo
+          setTimeout(()=>{new Notification('NeuralPrep ⏰',{body:'Time to study! Check your roadmap.'});},3600000);
+        }
+      });
+    }
+    function dismissNotifBanner(){document.getElementById('notifBanner').style.display='none';localStorage.setItem('notifDismissed','true');}
+    // Auto-hide if already enabled or dismissed
+    if(localStorage.getItem('notifEnabled')||localStorage.getItem('notifDismissed')||!('Notification' in window)){
+      document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementById('notifBanner');if(b)b.style.display='none';});
+    }
+    if('Notification' in window && Notification.permission==='granted'){
+      localStorage.setItem('notifEnabled','true');
+    }
+
+    // ===== STATE =====
+    let planData=null,chartInstance=null,currentChartType='bar',ttsActive=false,ttsQueue=[];
 
     function getStatus(p,m){if(p<m*0.45)return'critical';if(p<m*0.75)return'average';return'excellent';}
     function getStatusLabel(s){return s==='critical'?'🚨 CRITICAL':s==='average'?'🟠 AVERAGE':'🟢 EXCELLENT';}
+    function getColor(s){return s==='critical'?'#ff1744':s==='average'?'#ffa000':'#00e676';}
 
     function renderScores(predictions){
       const grid=document.getElementById('scoresGrid');grid.innerHTML='';
       predictions.forEach((p,i)=>{
         const status=getStatus(p.predicted,p.maxMark);
         const card=document.createElement('div');card.className=`score-card ${status}`;
-        card.innerHTML=`<div class="score-dot" style="background:${p.color}"></div><div class="score-subject">${p.subject}</div><div class="score-num" id="counter-${i}">0</div><div class="score-max">out of ${p.maxMark}</div><div class="score-badge">${getStatusLabel(status)}</div>`;
+        card.innerHTML=`<div class="score-dot" style="background:${p.color}"></div><div class="score-subject">${p.subject}</div><div class="score-num" id="cnt-${i}">0</div><div class="score-max">/ ${p.maxMark}</div><div class="score-badge">${getStatusLabel(status)}</div>`;
         grid.appendChild(card);
-        animateCounter(`counter-${i}`,p.predicted,1200,i*100);
+        let c=0;const ti=setInterval(()=>{c=Math.min(c+p.predicted/60,p.predicted);const el=document.getElementById(`cnt-${i}`);if(el)el.textContent=Math.round(c);if(c>=p.predicted)clearInterval(ti);},16);
       });
     }
-    function animateCounter(id,target,duration,delay){
-      setTimeout(()=>{let start=0;const step=target/(duration/16);const ti=setInterval(()=>{start=Math.min(start+step,target);const el=document.getElementById(id);if(el)el.textContent=Math.round(start);if(start>=target)clearInterval(ti);},16);},delay);
+
+    // ===== COMPARE =====
+    function toggleCompare(){
+      const sec=document.getElementById('compareSection');
+      sec.classList.toggle('show');
+      if(sec.classList.contains('show'))buildCompareTable();
     }
+    function buildCompareTable(){
+      const predictions=[...planData.predictions].sort((a,b)=>(b.predicted/b.maxMark)-(a.predicted/a.maxMark));
+      const tbody=document.getElementById('compareBody');tbody.innerHTML='';
+      predictions.forEach((p,i)=>{
+        const pct=Math.round((p.predicted/p.maxMark)*100);
+        const status=getStatus(p.predicted,p.maxMark);
+        const color=getColor(status);
+        const rankClass=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
+        const row=document.createElement('tr');
+        row.innerHTML=`
+          <td><span class="rank-badge ${rankClass}">${i+1}</span></td>
+          <td><span style="display:inline-flex;align-items:center;gap:0.4rem"><span style="width:8px;height:8px;border-radius:50%;background:${p.color};display:inline-block"></span>${p.subject}</span></td>
+          <td><strong style="color:${color}">${p.predicted}/${p.maxMark}</strong></td>
+          <td style="min-width:120px"><div style="font-size:0.78rem;color:var(--muted);margin-bottom:2px">${pct}%</div><div class="compare-bar" style="width:${pct}%;background:${color}"></div></td>
+          <td><span style="color:${color};font-size:0.78rem;font-weight:600">${getStatusLabel(status)}</span></td>`;
+        tbody.appendChild(row);
+      });
+    }
+
+    // ===== CHART =====
+    function switchChart(type){
+      currentChartType=type;
+      ['bar','radar','doughnut'].forEach(t=>{
+        const btn=document.getElementById(`btn${t.charAt(0).toUpperCase()+t.slice(1)}`);
+        if(btn){btn.style.background=t===type?'var(--accent)':'var(--surface)';btn.style.color=t===type?'#fff':'var(--muted)';btn.style.border=t===type?'none':'1px solid var(--border)';}
+      });
+      renderChart(planData.predictions);
+    }
+
     function renderChart(predictions){
       if(chartInstance)chartInstance.destroy();
       const ctx=document.getElementById('scoreChart').getContext('2d');
       const isDark=document.documentElement.dataset.theme!=='light';
-      chartInstance=new Chart(ctx,{type:'bar',data:{labels:predictions.map(p=>p.subject),datasets:[{label:'Predicted Score',data:predictions.map(p=>p.predicted),backgroundColor:predictions.map(p=>{const s=getStatus(p.predicted,p.maxMark);return s==='critical'?'rgba(255,23,68,0.7)':s==='average'?'rgba(255,160,0,0.7)':'rgba(0,230,118,0.7)';}),borderColor:predictions.map(p=>{const s=getStatus(p.predicted,p.maxMark);return s==='critical'?'#ff1744':s==='average'?'#ffa000':'#00e676';}),borderWidth:2,borderRadius:8}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:1200,easing:'easeOutBounce'},plugins:{legend:{display:false}},scales:{y:{max:predictions[0]?.maxMark||100,grid:{color:isDark?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.05)'},ticks:{color:'#6b6d8a'}},x:{grid:{display:false},ticks:{color:'#6b6d8a'}}}}});
+      const labels=predictions.map(p=>p.subject);
+      const data=predictions.map(p=>p.predicted);
+      const bgColors=predictions.map(p=>{const s=getStatus(p.predicted,p.maxMark);return s==='critical'?'rgba(255,23,68,0.7)':s==='average'?'rgba(255,160,0,0.7)':'rgba(0,230,118,0.7)';});
+      const borderColors=predictions.map(p=>getColor(getStatus(p.predicted,p.maxMark)));
+      const max=predictions[0]?.maxMark||100;
+
+      const configs={
+        bar:{type:'bar',data:{labels,datasets:[{label:'Predicted',data,backgroundColor:bgColors,borderColor:borderColors,borderWidth:2,borderRadius:8}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:1000,easing:'easeOutBounce'},plugins:{legend:{display:false}},scales:{y:{max,grid:{color:isDark?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.05)'},ticks:{color:'#6b6d8a'}},x:{grid:{display:false},ticks:{color:'#6b6d8a'}}}}},
+        radar:{type:'radar',data:{labels,datasets:[{label:'Performance %',data:predictions.map(p=>Math.round((p.predicted/p.maxMark)*100)),backgroundColor:'rgba(108,99,255,0.2)',borderColor:'rgba(108,99,255,0.8)',pointBackgroundColor:borderColors,pointRadius:5,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:100,ticks:{color:'#6b6d8a',stepSize:20},grid:{color:'rgba(255,255,255,0.06)'},pointLabels:{color:isDark?'#e8e9f3':'#0d0e1f',font:{size:11}}}},plugins:{legend:{display:false}}}},
+        doughnut:{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:bgColors,borderColor:borderColors,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:1000},plugins:{legend:{position:'right',labels:{color:isDark?'#e8e9f3':'#0d0e1f',font:{size:11},padding:12}}}}}
+      };
+      chartInstance=new Chart(ctx,configs[currentChartType]);
     }
+
+    // ===== ROADMAP =====
+    function generateTimeSlots(){const s=[];for(let h=0;h<24;h++)for(let m of[0,30]){const d=new Date(2000,0,1,h,m);s.push(d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true}));}return s;}
+    const slots=generateTimeSlots();
+    ['startTime','endTime'].forEach(id=>{const sel=document.getElementById(id);slots.forEach(s=>sel.add(new Option(s,s)));});
+
     function rebuildRoadmap(){
       if(!planData)return;
       const startStr=document.getElementById('startTime').value,endStr=document.getElementById('endTime').value;
       const predictions=planData.predictions,maxMark=predictions[0]?.maxMark||100;
       const weights=predictions.map(p=>p.predicted<maxMark*0.45?2.0:p.predicted<maxMark*0.75?1.0:0.8);
       const totalW=weights.reduce((a,b)=>a+b,0);
-      const parseTime=s=>{const[time,ampm]=s.split(' ');let[h,m]=time.split(':').map(Number);if(ampm==='PM'&&h!==12)h+=12;if(ampm==='AM'&&h===12)h=0;return h*60+m;};
-      let startMins=parseTime(startStr),endMins=parseTime(endStr);
-      if(endMins<=startMins)endMins+=24*60;
-      const totalMins=endMins-startMins,breakTotal=15*(predictions.length-1),studyMins=Math.max(totalMins-breakTotal,30);
+      const pt=s=>{const[time,ampm]=s.split(' ');let[h,m]=time.split(':').map(Number);if(ampm==='PM'&&h!==12)h+=12;if(ampm==='AM'&&h===12)h=0;return h*60+m;};
+      let sm=pt(startStr),em=pt(endStr);if(em<=sm)em+=24*60;
+      const studyMins=Math.max((em-sm)-15*(predictions.length-1),30);
       const list=document.getElementById('roadmapList');list.innerHTML='';
-      let currentMins=startMins;
+      let cur=sm;
       predictions.forEach((p,i)=>{
-        const sessionMins=Math.round((weights[i]/totalW)*studyMins);
-        const durHrs=(sessionMins/60).toFixed(1);
+        const mins=Math.round((weights[i]/totalW)*studyMins);
+        const hrs=(mins/60).toFixed(1);
         const status=getStatus(p.predicted,maxMark);
-        const toTime=m=>{let h=Math.floor(m/60)%24,min=m%60;const ampm=h>=12?'PM':'AM';h=h%12||12;return`${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')} ${ampm}`;};
-        const sTime=toTime(currentMins);currentMins+=sessionMins;const eTime=toTime(currentMins);currentMins+=15;
-        const topicsStr=p.topics&&p.topics.length>0?p.topics.slice(0,4).join(', ')+(p.topics.length>4?'...':''):'Add topics via AI Suggest in planner';
-        const item=document.createElement('div');item.className=`roadmap-item ${status}`;item.style.animationDelay=`${i*0.1}s`;
-        item.innerHTML=`<div class="roadmap-header"><div class="roadmap-subject" style="color:${p.color}">${p.subject}</div><div class="roadmap-time">⏰ ${sTime} – ${eTime}</div></div><div class="roadmap-topics">📌 ${topicsStr}</div><div class="roadmap-footer"><div class="roadmap-duration">⏱️ ${durHrs} hrs study + 15 min break</div><div class="roadmap-score">Predicted: ${p.predicted}/${maxMark}</div></div>`;
+        const toT=m=>{let h=Math.floor(m/60)%24,min=m%60;const ap=h>=12?'PM':'AM';h=h%12||12;return`${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')} ${ap}`;};
+        const sT=toT(cur);cur+=mins;const eT=toT(cur);cur+=15;
+        const topics=p.topics&&p.topics.length>0?p.topics.slice(0,4).join(', ')+(p.topics.length>4?'...':''):'Add topics via AI Suggest in planner';
+        const item=document.createElement('div');item.className=`roadmap-item ${status}`;item.style.animationDelay=`${i*0.08}s`;
+        item.dataset.subject=p.subject;item.dataset.score=`${p.predicted}/${maxMark}`;item.dataset.time=`${sT} to ${eT}`;item.dataset.topics=topics;
+        item.innerHTML=`<div class="roadmap-header"><div class="roadmap-subject" style="color:${p.color}">${p.subject}</div><div class="roadmap-time">⏰ ${sT} – ${eT}</div></div><div class="roadmap-topics">📌 ${topics}</div><div class="roadmap-footer"><div class="roadmap-duration">⏱️ ${hrs} hrs + 15 min break</div><div class="roadmap-score">Predicted: ${p.predicted}/${maxMark}</div></div>`;
         list.appendChild(item);
       });
     }
+
+    // ===== TEXT TO SPEECH =====
+    let ttsUtterance=null;
+    function toggleTTS(){
+      if(ttsActive){stopTTS();return;}
+      startTTS();
+    }
+    function startTTS(){
+      if(!('speechSynthesis' in window)){alert('Your browser does not support Text to Speech.');return;}
+      const items=document.querySelectorAll('.roadmap-item');
+      if(items.length===0)return;
+      ttsActive=true;
+      const btn=document.getElementById('ttsBtn');
+      btn.classList.add('speaking');btn.textContent='⏹ Stop';
+      document.getElementById('ttsBar').classList.add('show');
+      let idx=0;
+      function readNext(){
+        if(idx>=items.length||!ttsActive){stopTTS();return;}
+        const item=items[idx];
+        const subject=item.dataset.subject||'';
+        const score=item.dataset.score||'';
+        const time=item.dataset.time||'';
+        const topics=item.dataset.topics||'';
+        const text=`Subject: ${subject}. Predicted score: ${score}. Study time: ${time}. Topics: ${topics}.`;
+        document.getElementById('ttsCurrentSubject').textContent=`Reading: ${subject}`;
+        document.getElementById('ttsProgressFill').style.width=`${((idx+1)/items.length)*100}%`;
+        ttsUtterance=new SpeechSynthesisUtterance(text);
+        ttsUtterance.rate=0.9;ttsUtterance.pitch=1;
+        ttsUtterance.onend=()=>{idx++;setTimeout(readNext,500);};
+        ttsUtterance.onerror=()=>{idx++;readNext();};
+        window.speechSynthesis.speak(ttsUtterance);
+        idx++;
+      }
+      // Intro
+      const intro=new SpeechSynthesisUtterance(`Here is your personalized study roadmap from NeuralPrep.`);
+      intro.onend=()=>{idx=0;readNext();};
+      window.speechSynthesis.speak(intro);
+    }
+    function stopTTS(){
+      ttsActive=false;
+      window.speechSynthesis?.cancel();
+      const btn=document.getElementById('ttsBtn');
+      if(btn){btn.classList.remove('speaking');btn.textContent='🔊 Read Aloud';}
+      document.getElementById('ttsBar').classList.remove('show');
+    }
+
+    // ===== SHARE CARD =====
+    function openShareCard(){
+      const predictions=planData.predictions;
+      const cfg=planData.config;
+      document.getElementById('scTitle').textContent=`My ${cfg?.examMode==='mid'?'Mid Exam':'Semester Exam'} Study Plan`;
+      document.getElementById('scSubtitle').textContent=`${cfg?.diffLevel?.charAt(0).toUpperCase()+cfg?.diffLevel?.slice(1)} Mode · ${predictions.length} Subjects`;
+      const scoresDiv=document.getElementById('scScores');scoresDiv.innerHTML='';
+      predictions.forEach(p=>{
+        const status=getStatus(p.predicted,p.maxMark);
+        const emoji=status==='critical'?'🚨':status==='average'?'🟠':'🟢';
+        const div=document.createElement('div');div.className='sc-score-item';
+        div.innerHTML=`${emoji} ${p.subject}: <span>${p.predicted}/${p.maxMark}</span>`;
+        scoresDiv.appendChild(div);
+      });
+      document.getElementById('shareOverlay').classList.add('show');
+    }
+    function closeShareCard(){document.getElementById('shareOverlay').classList.remove('show');}
+    async function downloadShareCard(){
+      const card=document.getElementById('shareCard');
+      try{
+        const canvas=await html2canvas(card,{backgroundColor:null,scale:2});
+        const link=document.createElement('a');
+        link.download='NeuralPrep-Results.png';
+        link.href=canvas.toDataURL('image/png');
+        link.click();
+      } catch(e){alert('Could not generate image. Try screenshot instead.');}
+    }
+
+    // ===== WHATSAPP SHARE =====
+    function shareWhatsApp(){
+      const predictions=planData.predictions;
+      let msg=`🎓 *My NeuralPrep Study Plan*\n\n`;
+      predictions.forEach(p=>{
+        const s=getStatus(p.predicted,p.maxMark);
+        const emoji=s==='critical'?'🚨':s==='average'?'🟠':'🟢';
+        msg+=`${emoji} *${p.subject}*: ${p.predicted}/${p.maxMark}\n`;
+      });
+      msg+=`\n📱 Generated by NeuralPrep — Smart Exam Scheduler`;
+      const url=`https://wa.me/?text=${encodeURIComponent(msg)}`;
+      window.open(url,'_blank');
+    }
+
+    // ===== ALERT =====
     function renderAlert(predictions){
       const maxMark=predictions[0]?.maxMark||100;
       const critical=predictions.filter(p=>getStatus(p.predicted,maxMark)==='critical');
@@ -195,41 +554,66 @@
       const quoteEl=document.getElementById('resultQuote');
       if(critical.length>0){
         banner.className='alert-banner danger';
-        banner.innerHTML=`<div style="font-size:1.5rem">⚠️</div><div><div>Focus Required — Critical Subjects Detected</div><div class="alert-subjects">${critical.map(p=>p.subject).join(', ')}</div></div>`;
-        quoteEl.innerHTML=`💬 <em>${resultQuotes[0].critical}</em>`;
+        banner.innerHTML=`<div style="font-size:1.3rem">⚠️</div><div><div>Focus Required — Critical Subjects Detected</div><div class="alert-subjects">${critical.map(p=>p.subject).join(', ')}</div></div>`;
+        quoteEl.innerHTML=`💬 <em>"Don't panic — every expert was once a beginner. Focus on these subjects now!" 💪</em>`;
+        // Send notification if enabled
+        if(Notification.permission==='granted'){
+          new Notification('NeuralPrep ⚠️',{body:`Critical subjects: ${critical.map(p=>p.subject).join(', ')}. Focus on these first!`});
+        }
       } else {
-        const excellent=predictions.filter(p=>getStatus(p.predicted,maxMark)==='excellent');
         banner.className='alert-banner success';
-        banner.innerHTML=`<div style="font-size:1.5rem">✅</div><div>Great Performance! You're on track across all subjects.</div>`;
-        quoteEl.innerHTML=`💬 <em>${excellent.length===predictions.length?resultQuotes[0].excellent:resultQuotes[0].average}</em>`;
+        banner.innerHTML=`<div style="font-size:1.3rem">✅</div><div>Great Performance! You're on track across all subjects.</div>`;
+        quoteEl.innerHTML=`💬 <em>"Outstanding! Your hard work is paying off. Keep this momentum!" 🌟</em>`;
+        if(Notification.permission==='granted'){
+          new Notification('NeuralPrep ✅',{body:'Great performance! Your study plan is ready.'});
+        }
       }
     }
+
+    // ===== PDF =====
     async function downloadPDF(){
-      const{jsPDF}=window.jspdf;const doc=new jsPDF();const predictions=planData.predictions;const cfg=planData.config;
-      let y=20;doc.setFont('helvetica','bold');doc.setFontSize(20);doc.setTextColor(108,99,255);doc.text('NeuralPrep — Study Roadmap',20,y);y+=12;
-      doc.setFontSize(10);doc.setTextColor(120,120,140);doc.setFont('helvetica','normal');doc.text(`Generated: ${new Date().toLocaleDateString()} | Mode: ${cfg?.examMode?.toUpperCase()} | Difficulty: ${cfg?.diffLevel?.toUpperCase()}`,20,y);y+=15;
+      const{jsPDF}=window.jspdf;const doc=new jsPDF();
+      const predictions=planData.predictions;const cfg=planData.config;
+      let y=20;
+      doc.setFont('helvetica','bold');doc.setFontSize(20);doc.setTextColor(108,99,255);doc.text('NeuralPrep — Study Roadmap',20,y);y+=12;
+      doc.setFontSize(10);doc.setTextColor(120,120,140);doc.setFont('helvetica','normal');
+      doc.text(`Generated: ${new Date().toLocaleDateString()} | Mode: ${(cfg?.examMode||'').toUpperCase()} | Difficulty: ${(cfg?.diffLevel||'').toUpperCase()}`,20,y);y+=15;
       doc.setFontSize(13);doc.setFont('helvetica','bold');doc.setTextColor(40,40,60);doc.text('Predicted Scores',20,y);y+=8;
       doc.setFontSize(10);doc.setFont('helvetica','normal');
       predictions.forEach(p=>{const s=getStatus(p.predicted,p.maxMark);const e=s==='critical'?'[CRITICAL]':s==='average'?'[AVERAGE]':'[EXCELLENT]';doc.text(`• ${p.subject}: ${p.predicted}/${p.maxMark}  ${e}`,24,y);y+=7;});
       y+=8;doc.setFontSize(13);doc.setFont('helvetica','bold');doc.setTextColor(40,40,60);doc.text('Study Schedule',20,y);y+=8;doc.setFontSize(10);doc.setFont('helvetica','normal');
       document.querySelectorAll('.roadmap-item').forEach(item=>{
-        const sub=item.querySelector('.roadmap-subject').textContent;const time=item.querySelector('.roadmap-time').textContent;const score=item.querySelector('.roadmap-score').textContent;const topics=item.querySelector('.roadmap-topics').textContent;
         if(y>270){doc.addPage();y=20;}
-        doc.setFont('helvetica','bold');doc.setTextColor(60,60,80);doc.text(`${sub} — ${time}`,24,y);y+=6;
-        doc.setFont('helvetica','normal');doc.setTextColor(120,120,140);doc.text(`${topics}`,28,y);y+=5;doc.text(`${score}`,28,y);y+=8;
+        doc.setFont('helvetica','bold');doc.setTextColor(60,60,80);doc.text(`${item.dataset.subject} — ${item.dataset.time}`,24,y);y+=6;
+        doc.setFont('helvetica','normal');doc.setTextColor(120,120,140);
+        const topics=item.dataset.topics||'';doc.text(topics.substring(0,80),28,y);y+=5;
+        doc.text(`Predicted: ${item.dataset.score}`,28,y);y+=9;
       });
       doc.save('NeuralPrep_StudyRoadmap.pdf');
     }
+
+    // ===== INIT =====
     window.addEventListener('load',()=>{
       const raw=sessionStorage.getItem('planResult');
       if(!raw){window.location.href='planner.html';return;}
       planData=JSON.parse(raw);
       const cfg=planData.config;
-      document.getElementById('planSubtitle').textContent=`${cfg?.examMode==='mid'?'Mid Exam':'Semester Exam'} · ${cfg?.diffLevel?.charAt(0).toUpperCase()+cfg?.diffLevel?.slice(1)} mode · ${planData.predictions.length} subjects`;
+      document.getElementById('planSubtitle').textContent=`${cfg?.examMode==='mid'?'Mid Exam':'Semester Exam'} · ${(cfg?.diffLevel||'').charAt(0).toUpperCase()+(cfg?.diffLevel||'').slice(1)} mode · ${planData.predictions.length} subjects`;
       const startSel=document.getElementById('startTime'),endSel=document.getElementById('endTime');
       if(cfg?.startTime)startSel.value=cfg.startTime;if(cfg?.endTime)endSel.value=cfg.endTime;
-      renderScores(planData.predictions);renderChart(planData.predictions);renderAlert(planData.predictions);rebuildRoadmap();
-      setTimeout(()=>{document.getElementById('loadingScreen').style.opacity='0';document.getElementById('loadingScreen').style.transition='opacity 0.4s';setTimeout(()=>{document.getElementById('loadingScreen').style.display='none';document.getElementById('mainContent').style.display='block';},400);},1200);
+      renderScores(planData.predictions);
+      renderChart(planData.predictions);
+      renderAlert(planData.predictions);
+      rebuildRoadmap();
+      // Hide notif banner if permission already granted/denied
+      if(!('Notification' in window)||Notification.permission==='granted'||Notification.permission==='denied'||localStorage.getItem('notifDismissed')){
+        document.getElementById('notifBanner').style.display='none';
+      }
+      setTimeout(()=>{
+        document.getElementById('loadingScreen').style.opacity='0';
+        document.getElementById('loadingScreen').style.transition='opacity 0.4s';
+        setTimeout(()=>{document.getElementById('loadingScreen').style.display='none';document.getElementById('mainContent').style.display='block';},400);
+      },1000);
     });
   </script>
 </body>
