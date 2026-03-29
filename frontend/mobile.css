@@ -1,0 +1,347 @@
+/* ============================================
+   NeuralPrep — Global Mobile Responsive CSS
+   Applied to ALL pages via <link>
+   ============================================ */
+
+/* ===== BASE MOBILE FIXES ===== */
+@media (max-width: 768px) {
+
+  /* NAV — stack on mobile */
+  nav {
+    padding: 0.9rem 1rem !important;
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+  }
+  .nav-links, .nav-right {
+    gap: 0.6rem !important;
+    flex-wrap: wrap !important;
+  }
+  .nav-links a, .nav-right a {
+    font-size: 0.8rem !important;
+  }
+  .nav-logo { font-size: 1.15rem !important; }
+
+  /* PAGE WRAP */
+  .page-wrap {
+    padding: 1.2rem 0.9rem 4rem !important;
+  }
+
+  /* SECTION */
+  .section {
+    padding: 3rem 1rem !important;
+  }
+
+  /* PAGE HEADER — stack actions below title */
+  .page-header {
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+  }
+  .page-header h1 {
+    font-size: 1.5rem !important;
+  }
+  .header-actions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+  }
+  .header-actions .btn-action,
+  .header-actions .btn-pdf,
+  .header-actions .btn-dashboard {
+    flex: 1 1 calc(50% - 0.25rem) !important;
+    min-width: 120px !important;
+    justify-content: center !important;
+    padding: 0.6rem 0.5rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  /* CARDS */
+  .card, .chart-card, .gpa-card, .streak-card, .calendar-card {
+    padding: 1.2rem 1rem !important;
+    border-radius: 14px !important;
+  }
+
+  /* RADIO OPTIONS — stack */
+  .radio-group {
+    flex-direction: column !important;
+    gap: 0.6rem !important;
+  }
+  .radio-option {
+    min-width: unset !important;
+    width: 100% !important;
+  }
+
+  /* BRANCH GRID — 2 columns */
+  .branch-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.6rem !important;
+  }
+
+  /* TIME ROW — stack */
+  .time-row, .time-config {
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+  }
+
+  /* MARKS GRID — single column */
+  .marks-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.2rem !important;
+  }
+
+  /* SUBJECT NAME INPUT */
+  .subject-name-input {
+    width: 140px !important;
+    font-size: 0.88rem !important;
+  }
+
+  /* STATS GRID */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem !important;
+  }
+
+  /* SCORES GRID */
+  .scores-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem !important;
+  }
+
+  /* STATS BAR */
+  .stats-bar {
+    flex-wrap: wrap !important;
+    padding: 1.5rem 1rem !important;
+    gap: 0 !important;
+  }
+  .stat-item {
+    flex: 1 1 40% !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border) !important;
+    padding: 1rem !important;
+    min-width: 100px !important;
+  }
+
+  /* FEATURES GRID */
+  .features-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.9rem !important;
+  }
+
+  /* COMPARE TABLE — scrollable */
+  .compare-section { overflow-x: auto !important; }
+  .compare-table { min-width: 480px !important; }
+
+  /* STEPS GRID */
+  .steps-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1rem !important;
+  }
+
+  /* TESTIMONIALS */
+  .testimonials-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  /* FAQ */
+  .faq-section { padding: 3rem 1rem !important; }
+  .how-section { padding: 3rem 1rem !important; }
+
+  /* PERFORMANCE GRID */
+  .perf-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  /* BADGES */
+  .badges-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem !important;
+  }
+
+  /* PROGRESS STEPS */
+  .progress-steps {
+    overflow-x: auto !important;
+    padding-bottom: 0.5rem !important;
+  }
+
+  /* GENERATE BUTTON */
+  .generate-btn {
+    font-size: 0.95rem !important;
+    padding: 1rem !important;
+  }
+
+  /* DASH TABS — scrollable */
+  .dash-tabs {
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  .dash-tab {
+    white-space: nowrap !important;
+    min-width: fit-content !important;
+    font-size: 0.78rem !important;
+    padding: 0.55rem 0.85rem !important;
+  }
+
+  /* GPA ROW */
+  .gpa-row {
+    grid-template-columns: 1fr 70px 65px auto !important;
+    gap: 0.4rem !important;
+  }
+  .gpa-input { font-size: 0.82rem !important; padding: 0.45rem 0.6rem !important; }
+
+  /* CALENDAR */
+  .calendar-grid {
+    gap: 3px !important;
+  }
+  .cal-day {
+    min-height: 60px !important;
+    padding: 0.35rem !important;
+    border-radius: 7px !important;
+  }
+  .cal-date { font-size: 0.65rem !important; }
+  .cal-session { font-size: 0.55rem !important; }
+  .cal-day-header { font-size: 0.62rem !important; }
+
+  /* STREAK GRID */
+  .streak-grid { gap: 3px !important; }
+
+  /* HERO */
+  .hero {
+    padding: 6rem 1rem 3rem !important;
+  }
+  .hero h1 {
+    font-size: clamp(2.2rem, 10vw, 3.5rem) !important;
+    letter-spacing: -1px !important;
+  }
+  .hero-sub {
+    font-size: 0.95rem !important;
+  }
+  .hero-actions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+    width: 100% !important;
+    max-width: 320px !important;
+  }
+  .btn-primary, .btn-secondary {
+    justify-content: center !important;
+    width: 100% !important;
+  }
+
+  /* SHARE CARD */
+  .share-card-overlay {
+    padding: 0.75rem !important;
+    align-items: flex-end !important;
+  }
+  .share-card-box {
+    width: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+    padding: 1.5rem 1.2rem !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+  }
+
+  /* COLOR MODAL */
+  .color-modal-box, .cal-modal-box {
+    width: 95% !important;
+    padding: 1.5rem 1.2rem !important;
+  }
+
+  /* ROADMAP */
+  .roadmap-item {
+    padding: 1rem !important;
+  }
+  .roadmap-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.3rem !important;
+  }
+
+  /* FOOTER */
+  .footer-inner {
+    flex-direction: column !important;
+    gap: 1.5rem !important;
+  }
+  footer {
+    padding: 2rem 1rem 1.5rem !important;
+  }
+
+  /* QUOTE BANNER */
+  .quote-banner {
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 0.5rem !important;
+  }
+
+  /* NOTIF BANNER */
+  .notif-banner {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+
+  /* TTS BAR */
+  .tts-bar {
+    flex-wrap: wrap !important;
+    gap: 0.4rem !important;
+  }
+
+  /* COUNTDOWN CARD */
+  .countdown-card {
+    flex-direction: column !important;
+    text-align: center !important;
+  }
+
+  /* CHART */
+  .chart-wrap { height: 200px !important; }
+
+  /* TOPIC INPUT ROW */
+  .topic-input-row {
+    gap: 0.4rem !important;
+  }
+
+  /* REMINDER MODAL */
+  .modal {
+    width: 95% !important;
+    padding: 1.5rem 1.2rem !important;
+  }
+}
+
+/* ===== VERY SMALL PHONES (< 380px) ===== */
+@media (max-width: 380px) {
+  .scores-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .stats-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .header-actions .btn-action {
+    flex: 1 1 100% !important;
+  }
+  .branch-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  nav { padding: 0.75rem !important; }
+  .nav-logo { font-size: 1rem !important; }
+}
+
+/* ===== TOUCH IMPROVEMENTS ===== */
+@media (hover: none) and (pointer: coarse) {
+  /* Increase tap targets */
+  .btn-action, .btn-pdf, .btn-dashboard,
+  .btn-primary, .btn-secondary, .generate-btn,
+  .btn-al-suggest, .btn-add-topic, .btn-submit,
+  .dash-tab, .branch-card, .radio-option {
+    min-height: 44px !important;
+  }
+  /* Remove hover animations on touch */
+  .feature-card:hover,
+  .score-card:hover,
+  .perf-card:hover,
+  .badge-card:hover {
+    transform: none !important;
+  }
+  /* Smooth scrolling for all */
+  * { -webkit-overflow-scrolling: touch; }
+}

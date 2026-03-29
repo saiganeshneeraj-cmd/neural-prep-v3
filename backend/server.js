@@ -7,8 +7,12 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 app.use(express.static(path.join(__dirname, '../frontend')));
+
+// Health check — keeps Render from sleeping
+app.get('/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
+app.get('/ping', (req, res) => res.send('pong'));
 
 const predictRoute = require('./routes/predict');
 const topicsRoute = require('./routes/topics');
@@ -23,7 +27,7 @@ app.get('*', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`\n🚀 NeuralPrep Server running at http://localhost:${PORT}`);
-  console.log(`📊 ML Prediction API: http://localhost:${PORT}/api/predict`);
-  console.log(`✨ Topics API: http://localhost:${PORT}/api/topics\n`);
+  console.log(`\n🚀 NeuralPrep running at http://localhost:${PORT}`);
+  console.log(`📊 API: http://localhost:${PORT}/api/predict`);
+  console.log(`❤️  Health: http://localhost:${PORT}/health\n`);
 });

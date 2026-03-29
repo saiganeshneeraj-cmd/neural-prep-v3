@@ -2,7 +2,7 @@
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
   <title>NeuralPrep — Planner</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
   <style>
@@ -236,6 +236,7 @@
     .step-label { font-size:0.72rem; color:var(--muted); text-align:center; }
     .step-item.active .step-label { color:var(--accent); }
   </style>
+  <link rel="stylesheet" href="mobile.css"/>
 </head>
 <body>
   <nav>
@@ -488,6 +489,12 @@
       const time = document.getElementById('reminderTime').value;
       if (!time) return showToast('⚠️ Please select a time!');
 
+      if (!('Notification' in window)) {
+        showToast('⚠️ Notifications not supported on this browser.');
+        return;
+      }
+
+      // Must call requestPermission from user gesture (button click)
       Notification.requestPermission().then(perm => {
         if (perm === 'granted') {
           const [h, m] = time.split(':').map(Number);
@@ -496,17 +503,23 @@
           remind.setHours(h, m, 0, 0);
           if (remind <= now) remind.setDate(remind.getDate() + 1);
           const delay = remind - now;
+          const delayMins = Math.round(delay / 60000);
 
           setTimeout(() => {
-            new Notification('NeuralPrep 📚', { body: msg, icon: '📚' });
+            try { new Notification('NeuralPrep 📚', { body: msg }); } catch(e) {}
           }, delay);
 
           localStorage.setItem('reminder', JSON.stringify({ msg, time }));
-          showToast(`✅ Reminder set for ${time}!`);
+          showToast(`✅ Reminder set for ${time}! (in ${delayMins} min)`);
+          closeReminderModal();
+        } else if (perm === 'denied') {
+          showToast('🔕 Blocked! Go to browser Settings → Site Settings → Notifications → Allow');
           closeReminderModal();
         } else {
-          showToast('⚠️ Please allow notifications in browser settings');
+          showToast('⚠️ Permission not granted. Try again.');
         }
+      }).catch(() => {
+        showToast('⚠️ Could not set reminder. Try on desktop browser.');
       });
     }
 
@@ -725,11 +738,31 @@
         subjects: subjects.map(s => ({ name:s.name, color:s.color, topics:s.topics, notes:s.notes, written:s.written, assign:s.assign, attend:s.attend }))
       };
       try {
-        const res = await fetch('/api/predict', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
-        const data = await res.json();
-        sessionStorage.setItem('planResult', JSON.stringify({...data, config:payload}));
-        window.location.href = 'results.html';
+        // Add timeout for mobile — if server slow, use JS prediction
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6000);
+        try {
+          const res = await fetch('/api/predict', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify(payload),
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+          const data = await res.json();
+          clearInterval(loadingInterval);
+          sessionStorage.setItem('planResult', JSON.stringify({...data, config:payload}));
+          window.location.href = 'results.html';
+        } catch(fetchErr) {
+          clearTimeout(timeoutId);
+          clearInterval(loadingInterval);
+          // Instant JS fallback — works offline too
+          const result = clientPredict(payload);
+          sessionStorage.setItem('planResult', JSON.stringify({...result, config:payload}));
+          window.location.href = 'results.html';
+        }
       } catch {
+        clearInterval(loadingInterval);
         const result = clientPredict(payload);
         sessionStorage.setItem('planResult', JSON.stringify({...result, config:payload}));
         window.location.href = 'results.html';

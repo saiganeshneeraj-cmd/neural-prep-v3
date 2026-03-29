@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
   <title>NeuralPrep — Your Results</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
@@ -186,6 +186,7 @@
 
     @media(max-width:600px){nav{padding:1rem;}.page-wrap{padding:1.5rem 1rem 4rem;}.header-actions{flex-wrap:wrap;}}
   </style>
+  <link rel="stylesheet" href="mobile.css"/>
 </head>
 <body>
   <div class="loading-screen" id="loadingScreen">
@@ -337,26 +338,53 @@
     const savedAccent=localStorage.getItem('accentColor');
     if(savedAccent){applyAccentColor(savedAccent);if(document.getElementById('customColorPicker'))document.getElementById('customColorPicker').value=savedAccent;}
 
-    // ===== NOTIFICATIONS =====
+    // ===== NOTIFICATIONS (works on HTTPS/Render + mobile) =====
     function enableNotifications(){
+      if(!('Notification' in window)){
+        showToastMsg('⚠️ Notifications not supported on this browser/device.');
+        return;
+      }
+      // Must be triggered by user gesture — this function is called on button click
       Notification.requestPermission().then(perm=>{
         if(perm==='granted'){
-          new Notification('NeuralPrep 📚',{body:'Notifications enabled! We will remind you to study.'});
           localStorage.setItem('notifEnabled','true');
           document.getElementById('notifBanner').style.display='none';
-          // Schedule a reminder 1 hour from now as demo
-          setTimeout(()=>{new Notification('NeuralPrep ⏰',{body:'Time to study! Check your roadmap.'});},3600000);
+          try {
+            new Notification('NeuralPrep 📚',{body:'Study reminders enabled! You will get alerts for critical subjects.',icon:'/favicon.ico'});
+          } catch(e) {
+            // Safari/iOS may not support constructor — silently ignore
+          }
+        } else if(perm==='denied'){
+          showToastMsg('🔕 Notifications blocked. Enable in browser settings → Site Settings.');
         }
+      }).catch(()=>{
+        showToastMsg('⚠️ Could not request notification permission.');
       });
     }
-    function dismissNotifBanner(){document.getElementById('notifBanner').style.display='none';localStorage.setItem('notifDismissed','true');}
-    // Auto-hide if already enabled or dismissed
-    if(localStorage.getItem('notifEnabled')||localStorage.getItem('notifDismissed')||!('Notification' in window)){
-      document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementById('notifBanner');if(b)b.style.display='none';});
+    function dismissNotifBanner(){
+      document.getElementById('notifBanner').style.display='none';
+      localStorage.setItem('notifDismissed','true');
     }
-    if('Notification' in window && Notification.permission==='granted'){
-      localStorage.setItem('notifEnabled','true');
+    function sendNotification(title, body){
+      if(!('Notification' in window)) return;
+      if(Notification.permission!=='granted') return;
+      try { new Notification(title,{body,icon:'/favicon.ico'}); } catch(e){}
     }
+    // Toast helper
+    function showToastMsg(msg){
+      let t=document.getElementById('toastMsg');
+      if(!t){t=document.createElement('div');t.id='toastMsg';t.style.cssText='position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:rgba(20,20,40,0.95);color:#e8e9f3;padding:0.75rem 1.5rem;border-radius:12px;font-size:0.85rem;z-index:99999;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.1);text-align:center;max-width:90vw;';document.body.appendChild(t);}
+      t.textContent=msg;t.style.opacity='1';
+      clearTimeout(t._to);t._to=setTimeout(()=>{t.style.opacity='0';},3500);
+    }
+    // Auto-hide banner based on current permission state
+    window.addEventListener('DOMContentLoaded',()=>{
+      const b=document.getElementById('notifBanner');
+      if(!b) return;
+      if(!('Notification' in window)||Notification.permission==='granted'||Notification.permission==='denied'||localStorage.getItem('notifDismissed')){
+        b.style.display='none';
+      }
+    });
 
     // ===== STATE =====
     let planData=null,chartInstance=null,currentChartType='bar',ttsActive=false,ttsQueue=[];
@@ -556,17 +584,12 @@
         banner.className='alert-banner danger';
         banner.innerHTML=`<div style="font-size:1.3rem">⚠️</div><div><div>Focus Required — Critical Subjects Detected</div><div class="alert-subjects">${critical.map(p=>p.subject).join(', ')}</div></div>`;
         quoteEl.innerHTML=`💬 <em>"Don't panic — every expert was once a beginner. Focus on these subjects now!" 💪</em>`;
-        // Send notification if enabled
-        if(Notification.permission==='granted'){
-          new Notification('NeuralPrep ⚠️',{body:`Critical subjects: ${critical.map(p=>p.subject).join(', ')}. Focus on these first!`});
-        }
+        sendNotification('NeuralPrep ⚠️',`Critical subjects: ${critical.map(p=>p.subject).join(', ')}. Focus now!`);
       } else {
         banner.className='alert-banner success';
         banner.innerHTML=`<div style="font-size:1.3rem">✅</div><div>Great Performance! You're on track across all subjects.</div>`;
         quoteEl.innerHTML=`💬 <em>"Outstanding! Your hard work is paying off. Keep this momentum!" 🌟</em>`;
-        if(Notification.permission==='granted'){
-          new Notification('NeuralPrep ✅',{body:'Great performance! Your study plan is ready.'});
-        }
+        sendNotification('NeuralPrep ✅','Great performance! Your study plan is ready.');
       }
     }
 
